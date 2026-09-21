@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ally"
+version = "0.0.1"
+description = "Ally — fall, inactivity and mood-aware care companion (CAT405 research prototype, USM 2026/27)"
+requires-python = ">=3.11,<3.12"
+readme = "README.md"
+
+[tool.setuptools.packages.find]
+include = ["ally*"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+extend-exclude = ["notebooks", "data", "models", "results", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "N", "S"]
+ignore = [
+  "S101",  # assert is fine in tests and contracts
+  "S603", "S607",  # subprocess use in scripts is intentional
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "B011"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit", "tests/replay"]
+addopts = "-ra -q --strict-markers"
+markers = [
+  "gpu: needs the RTX 2050 (skipped in CI)",
+  "api: needs ANTHROPIC_API_KEY / network (skipped in CI)",
+  "webcam: needs a physical camera (skipped in CI)",
+]

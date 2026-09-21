@@ -72,3 +72,30 @@ reused; the dialogue harness can be driven from replayed events.
   inactivity, 3 s debounce, 20 s listen × 2 prompts, 10 min confirmed timeout, 5 min cooldown, 5 s mood
   sample, 7-day retention, 127.0.0.1 bind). `ally_fall_threshold` defaults to `None` until Sprint 2's LOSO
   run chooses τ_fall. Dashboard port 8000 is a plain default, not a target.
+
+## Week 0 perception notes (2026-09-22) SYNTHESIS
+- **Feature conventions (`ally/perception/fall_features.py`).** The §6.1 step 2 feature set is implemented
+  as six per-frame columns in a fixed order (`FEATURE_NAMES`): torso angle in degrees from vertical
+  (0° upright, 90° horizontal, > 90° head below hips), bbox width/height, hip height normalised as
+  `1 − hip_y / H` (0 = bottom of frame), hip vertical velocity as `d(hip_y / H)/dt` in frame-heights per
+  second with **positive = downward** (so the plan's "vertical velocity > v_thr" reads naturally), its
+  derivative, and mean keypoint confidence. Derivatives are central finite differences on the real
+  timestamps (one-sided at window edges). Missing joints (conf ≤ `min_conf`, default 0 = only undetected
+  joints) and absent frames become NaN and propagate to neighbouring derivatives; window statistics are
+  NaN-aware. Joint indices exist only in one COCO-17 map; MediaPipe gets its own map if chosen in Sprint 1.
+- **Rule baseline parameters (`RuleFallDetector`).** The plan's rule fixes 60° and 2 s but not `v_thr` nor
+  what "low hip height" means, so both are **required constructor arguments with no default**, like
+  `ally_fall_threshold`; Sprint 2 chooses them on UR Fall and records them here. The rule needs one more
+  bound the plan does not state — how long after the impact the hip may take to reach the floor — and reuses
+  the 1.5 s feature window (`settle_s`) for it rather than inventing a new number. Detector output is a
+  per-frame score in [0, 1] (1.0 once per fall) behind the same `FallDetector` protocol the GRU will use.
+- **UR Fall layout and the subject map.** `scripts/prepare_urfall.py` fetches only cam0 RGB (≈ 58 MB per
+  sequence, ≈ 4 GB total) over HTTPS from `fenix.ur.edu.pl` (host allow-listed), keeps the authors' CSVs
+  verbatim and merges their first three columns into `labels.csv` (label 1 = lying, 0 = falling,
+  −1 = not lying, per the dataset page). The dataset does **not** publish which subject performed
+  each sequence, so `subjects.csv` is written as a blank template to be filled by hand (by viewing the
+  sequences) — never guessed. Until it is filled, leave-one-subject-out CV cannot run; the fallback is
+  grouped CV over sequences, and the SRD must say which one was used.
+- **Image-sequence frame rate.** `extract_keypoints.py` timestamps UR Fall PNG folders at the 30 FPS stated
+  on the dataset page (`--fps` overrides) and stores the file-name frame number (`frame_id`) so labels join
+  exactly; the ADL annotation files skip frames, so the join is by id, not by position.

@@ -52,6 +52,18 @@ data/ models/ results/   git-ignored
 Rules every change must respect are in `CLAUDE.md` (the FSM owns escalation; no raw frames on disk; only
 text + one keyframe per event leaves the device; numbers change only with an ADR).
 
+## Datasets
+
+```powershell
+python scripts/prepare_urfall.py --dry-run                 # what would be fetched
+python scripts/prepare_urfall.py --only falls --limit 1    # one sequence (~58 MB) to try the pipeline
+python scripts/prepare_urfall.py                           # all 70 sequences (~4 GB), resumable
+python scripts/extract_keypoints.py data/urfall/rgb --out data/urfall/keypoints   # needs `install` (GPU)
+```
+
+`data/urfall/subjects.csv` is written blank: fill in the subject per sequence by hand before
+leave-one-subject-out CV — the dataset does not publish that mapping.
+
 ## Licence and data
 
 Code: to be decided before the SRD. UR Fall Detection Dataset is CC BY-NC-SA 4.0; FER-2013 under its Kaggle
