@@ -1,0 +1,34 @@
+# secrets
+.env
+
+# python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# data, models, results (re-downloadable / regenerated)
+data/
+models/
+results/
+*.onnx
+*.pt
+*.pth
+*.ckpt
+mlruns/
+
+# notebooks
+.ipynb_checkpoints/
+
+# local tool config
+.claude/settings.local.json
+.roo/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
