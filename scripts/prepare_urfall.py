@@ -9,7 +9,9 @@ Layout written
     ├── annotations/urfall-cam0-falls.csv, urfall-cam0-adls.csv   (the authors' per-frame files, verbatim)
     ├── rgb/<sequence>/<sequence>-cam0-rgb-NNN.png                  (frames; git-ignored, never committed)
     ├── labels.csv        sequence,frame,label,kind   label per the dataset page: 1 = lying on the ground,
-    │                     0 = falling (transitional pose), -1 = not lying; kind = fall | adl
+    │                     0 = "temporary pose, when person is falling" (the authors exclude these from
+    │                     classification), -1 = not lying; kind = fall | adl. `frame` is the PNG file-name
+    │                     number (ADL files skip some frames — join by id, never by position)
     ├── subjects.csv      sequence,subject — filled BY HAND for leave-one-subject-out CV. The dataset does
     │                     not publish a sequence → subject map; do not guess it (decisions.md, Sprint 1 notes)
     └── manifest.json     what is present, frame counts, source, licence
