@@ -1,0 +1,23 @@
+﻿repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.8
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=2048]
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: detect-private-key
+  - repo: local
+    hooks:
+      - id: block-secrets-and-data
+        name: block .env / data / models / raw media
+        entry: "refusing to commit secrets, datasets, model weights or raw media (CLAUDE.md hard rules 2 and 4)"
+        language: fail
+        files: '^(\.env$|data/|models/|.*\.(pt|pth|onnx|ckpt|mp4|avi|mkv|wav|jpg|jpeg|png)$)'
+        exclude: '^(docs/|ally/api/dashboard/static/)'
