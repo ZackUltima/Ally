@@ -56,3 +56,19 @@ reused; the dialogue harness can be driven from replayed events.
 - **Dashboard is LAN-only by design**; the remote guardian gets the daily summary through Telegram.
 - **Sprint 4–5 fallback**: pretrained FER weights without fine-tuning for the March demo; dashboard v1 may
   slip into the Sprint 6 buffer.
+
+## Sprint 0 tooling notes (2026-09-21) SYNTHESIS
+- **Python 3.11 via `uv`**: the machine has only 3.13 and no admin-free installer; `uv python install 3.11`
+  + `uv venv` gives a reproducible 3.11 venv and `uv pip compile --universal` produces the pinned `requirements*.txt`
+  from hand-edited `requirements*.in` (universal, because the dev box is Windows and CI is Linux). Three tiers: `requirements-core.in` (pydantic, numpy — enough for
+  unit + replay tests, so CI stays CPU-only and fast), `requirements.in` (full runtime incl. CUDA torch),
+  `requirements-dev.in` (ruff, pytest, pre-commit). Exact pins are committed once the first resolve succeeds.
+- **`tasks.ps1` mirrors the `Makefile`** target for target because GNU make is not installed on the dev
+  laptop; the Makefile remains the contract named in CLAUDE.md.
+- **`EventType.SUPPRESSED`** added to `contracts.py` for a `SUSPECTED_*` trigger that fails the 3 s debounce
+  ("log as suppressed" in the §5.1 table) so the suppression is a first-class, countable event for the
+  ADR-003 false-alarm accounting. No new threshold.
+- **`config.py` carries only documented numbers** (640×480, 15 FPS, 10 s ring buffer, 1.5 s window, 30 min
+  inactivity, 3 s debounce, 20 s listen × 2 prompts, 10 min confirmed timeout, 5 min cooldown, 5 s mood
+  sample, 7-day retention, 127.0.0.1 bind). `ally_fall_threshold` defaults to `None` until Sprint 2's LOSO
+  run chooses τ_fall. Dashboard port 8000 is a plain default, not a target.

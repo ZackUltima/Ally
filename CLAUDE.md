@@ -69,6 +69,27 @@ Each module is testable at its boundary with fixtures; never reach across a boun
 - New decision or number → paragraph in `docs/context/decisions.md`. Five lines in `docs/journal.md`.
 - Report what was verified and how; if something was not run, say so.
 
+## Dev team (subagents in `.claude/agents/`) — use sparingly
+Default is to do the work in the main session. Delegate only when the row below matches; never run more than two
+agents at once; agents do not spawn agents. Read-only roles cost little; builders cost real usage — give them a
+scoped task with a test to make green, not "build the feature".
+
+| When | Delegate to |
+|---|---|
+| a change to `contracts.py`, FSM states, queues, LLM client, or the privacy boundary is being considered | `software-architect` (2 options → human decides → ADR) |
+| "what should we build next / is X in scope" | `product-owner` (read-only) |
+| vague request or examiner feedback needs turning into FR/NFR, SRD text, interview script | `business-analyst` |
+| a new screen or message format before any code | `ui-ux-designer` → then `frontend-dev` |
+| scoped work in one or two packages with a test | `backend-dev` (core) · `frontend-dev` (dashboard/Telegram UI) |
+| a feature spanning perception → storage → api/notify as one slice | `fullstack-dev` |
+| training/eval scripts, datasets, LOSO-CV, ONNX export, result tables | `ml-engineer` |
+| a builder says "done" on fusion/agent/notify/storage; before milestone demos | `qa-engineer`, then `tech-lead` review |
+| Makefile, pinning, pre-commit, CI, tags, demo runbook | `devops-engineer` |
+| sprint start/end, supervisor meeting, "are we on track" | `project-manager` |
+
+Do **not** delegate: one-file fixes, questions answerable from `docs/context/`, anything the human is mid-way
+through deciding.
+
 ## Working with Claude Code on this repo
 - One session per task; small vertical slices ("FSM `VERIFY` transitions + tests", not "build the event system").
 - Use plan mode before touching the FSM, thresholds, the privacy boundary, or the escalation path; propose 2 options.

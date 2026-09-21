@@ -1,0 +1,7 @@
+# Lightweight runtime deps needed by contracts, config, fusion and the replay path.
+# Unit + replay tests run with only these (no torch, no camera) so CI stays CPU-only and fast.
+# Exact pins are frozen to requirements*.txt by `make lock` (uv pip compile) on Python 3.11.
+pydantic>=2.7
+pydantic-settings>=2.3
+numpy>=1.26,<3
+pyyaml>=6.0
