@@ -25,7 +25,8 @@ import numpy as np
 VIDEO_EXT = {".mp4", ".avi", ".mkv", ".mov", ".webm"}
 IMAGE_EXT = {".png", ".jpg", ".jpeg"}
 N_KPTS = 17  # COCO layout (YOLO-pose). MediaPipe (33) gets its own extractor if chosen in Sprint 1.
-URFALL_FPS = 30.0  # frame rate stated on the UR Fall dataset page; applies to image sequences only
+# ASSUMED rate for image sequences (Kinect RGB nominal); the dataset page states none. --fps overrides.
+URFALL_FPS = 30.0
 _TRAILING_INT = re.compile(r"(\d+)$")
 
 

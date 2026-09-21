@@ -96,6 +96,13 @@ reused; the dialogue harness can be driven from replayed events.
   each sequence, so `subjects.csv` is written as a blank template to be filled by hand (by viewing the
   sequences) — never guessed. Until it is filled, leave-one-subject-out CV cannot run; the fallback is
   grouped CV over sequences, and the SRD must say which one was used.
-- **Image-sequence frame rate.** `extract_keypoints.py` timestamps UR Fall PNG folders at the 30 FPS stated
-  on the dataset page (`--fps` overrides) and stores the file-name frame number (`frame_id`) so labels join
-  exactly; the ADL annotation files skip frames, so the join is by id, not by position.
+- **Image-sequence frame rate — ASSUMED.** The dataset page (fetched 22 Sep) gives sampling rates only for
+  the accelerometers (60 Hz / 256 Hz), not for the RGB frames. `extract_keypoints.py` therefore timestamps
+  UR Fall PNG folders at an **assumed 30 FPS** (Kinect RGB nominal; `--fps` overrides). Because `ts` scales
+  `hip_vy`/`hip_ay`, any `v_thr` chosen in Sprint 2 is only valid for that rate; the SRD must state the
+  assumption or replace it with a verified value (e.g. from the authors' paper or a sequence's known duration).
+- **Label join verified.** The page defines label −1 = not lying, 1 = lying on the ground, 0 = "temporary
+  pose, when person is falling", and says the authors exclude 0-frames from classification — Sprint 2 should
+  do the same and say so. `frame_id` in the npz is the file-name number; on `adl-01` the PNGs run 1–150 while
+  the CSV covers 6–150 (144 rows) and every CSV frame has a PNG, so the join is by id and exact. Position-based
+  joins would be off by up to six frames on ADL sequences.
