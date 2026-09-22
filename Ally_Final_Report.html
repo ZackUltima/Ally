@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ally Final Report</title>
+<meta name="description" content="Living final-report skeleton for Ally, an AI-powered companion and safety-monitoring system, USM CAT405 Intelligent Computing Major Project 2026/2027.">
+<style>
+  :root{
+    --bg:#f7f8fa; --panel:#ffffff; --ink:#1c2430; --muted:#5b6675; --line:#dfe3e8;
+    --accent:#1f5fbf; --accent-soft:#e8f0fc; --ok:#1e7f4f; --ok-soft:#e3f5ea;
+    --warn:#a35a00; --warn-soft:#fff2df; --bad:#b3261e; --bad-soft:#fde8e6;
+    --mvp:#1e7f4f; --stretch:#7a4bb8; --stretch-soft:#efe8f9; --code:#f1f3f6;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0f1318; --panel:#171c23; --ink:#e6eaf0; --muted:#9aa5b4; --line:#2a323d;
+      --accent:#7fb0ff; --accent-soft:#1a2740; --ok:#5fd39a; --ok-soft:#14301f;
+      --warn:#ffb85c; --warn-soft:#3a2a10; --bad:#ff8a80; --bad-soft:#3c1a17;
+      --mvp:#5fd39a; --stretch:#c9a8ff; --stretch-soft:#2a2040; --code:#0f1318;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f1318; --panel:#171c23; --ink:#e6eaf0; --muted:#9aa5b4; --line:#2a323d;
+    --accent:#7fb0ff; --accent-soft:#1a2740; --ok:#5fd39a; --ok-soft:#14301f;
+    --warn:#ffb85c; --warn-soft:#3a2a10; --bad:#ff8a80; --bad-soft:#3c1a17;
+    --mvp:#5fd39a; --stretch:#c9a8ff; --stretch-soft:#2a2040; --code:#0f1318;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--accent)}
+  .layout{display:grid;grid-template-columns:274px minmax(0,1fr);gap:0;min-height:100vh}
+  nav.toc{position:sticky;top:0;height:100vh;overflow:auto;border-right:1px solid var(--line);background:var(--panel);padding:20px 16px}
+  nav.toc h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;border:0;padding:0}
+  nav.toc ol{list-style:none;padding:0;margin:0}
+  nav.toc li{margin:0 0 3px}
+  nav.toc a{display:block;padding:4px 8px;border-radius:6px;text-decoration:none;color:var(--ink);font-size:13.5px}
+  nav.toc a:hover{background:var(--accent-soft)}
+  nav.toc .num{color:var(--muted);display:inline-block;width:26px}
+  main{padding:32px 48px 80px;max-width:1080px}
+  header.cover{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:32px}
+  header.cover h1{font-size:34px;line-height:1.15;margin:0 0 6px}
+  header.cover .sub{font-size:18px;color:var(--muted);margin:0 0 18px}
+  .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 24px;font-size:14px}
+  .meta div span{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+  section{margin:0 0 48px}
+  h2{font-size:24px;margin:0 0 14px;padding-top:8px;border-top:3px solid var(--accent);display:inline-block}
+  h3{font-size:18px;margin:26px 0 8px}
+  h4{font-size:15.5px;margin:18px 0 6px}
+  p{margin:0 0 12px}
+  ul,ol{margin:0 0 12px;padding-left:22px}
+  li{margin-bottom:4px}
+  table{width:100%;border-collapse:collapse;margin:10px 0 18px;font-size:14px;background:var(--panel)}
+  th,td{border:1px solid var(--line);padding:8px 10px;vertical-align:top;text-align:left}
+  th{background:var(--accent-soft);font-weight:600}
+  tr:nth-child(even) td{background:color-mix(in srgb,var(--panel) 92%,var(--line))}
+  caption{caption-side:top;text-align:left;font-size:13px;color:var(--muted);padding:0 0 6px;font-weight:600}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:6px;margin:12px 0}
+  .callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+  .callout.ok{border-color:var(--ok);background:var(--ok-soft)}
+  .callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+  .badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:999px;vertical-align:middle;white-space:nowrap}
+  .mvp{background:var(--ok-soft);color:var(--mvp);border:1px solid var(--mvp)}
+  .stretch{background:var(--stretch-soft);color:var(--stretch);border:1px solid var(--stretch)}
+  .v1{background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok)}
+  .v2{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn)}
+  .v3{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+  .v4{background:var(--bad-soft);color:var(--bad);border:1px solid var(--bad)}
+  code,pre{font-family:Consolas,"Cascadia Mono",Menlo,monospace;font-size:13px}
+  code{background:var(--code);padding:1px 5px;border-radius:4px}
+  pre{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow:auto;line-height:1.45}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+  .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:12px 0}
+  .kpi div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .kpi b{display:block;font-size:22px}
+  .kpi span{color:var(--muted);font-size:13px}
+  .gantt{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+  .gantt .months{display:grid;grid-template-columns:190px 1fr;font-size:12px;color:var(--muted)}
+  .gantt .months .scale{display:grid;grid-template-columns:repeat(9,1fr);border-bottom:1px solid var(--line)}
+  .gantt .months .scale div{border-left:1px solid var(--line);padding:2px 4px}
+  .gantt .row{display:grid;grid-template-columns:190px 1fr;align-items:center;font-size:13px;min-height:26px}
+  .gantt .row .label{padding:3px 6px 3px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .gantt .row .track{position:relative;height:20px;background:repeating-linear-gradient(90deg,transparent 0 calc(11.11% - 1px),var(--line) calc(11.11% - 1px) 11.11%)}
+  .gantt .bar{position:absolute;top:3px;height:14px;border-radius:4px;background:var(--accent);opacity:.85}
+  .gantt .bar.ms{background:var(--bad);width:5px!important;border-radius:2px}
+  .gantt .bar.sprint{background:var(--ok)}
+  .gantt .bar.doc{background:var(--stretch)}
+  .gantt .today{position:absolute;top:0;bottom:0;width:2px;background:var(--bad)}
+  .legend span{display:inline-block;margin-right:14px;font-size:12.5px}
+  .legend i{display:inline-block;width:14px;height:10px;border-radius:3px;vertical-align:middle;margin-right:4px}
+  .small{font-size:13px;color:var(--muted)}
+  .toolbar{position:fixed;right:16px;top:12px;display:flex;gap:8px;z-index:5}
+  .toolbar button{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px}
+  details{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 14px;margin:8px 0}
+  summary{cursor:pointer;font-weight:600}
+  .num-h{color:var(--muted);font-weight:400;margin-right:6px}
+  .todo{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:6px;margin:10px 0;font-size:13.5px}
+  .todo b{color:var(--warn)}
+  .sig{border-bottom:1px solid var(--muted);display:inline-block;width:280px;margin:28px 0 4px}
+  svg text{font-family:inherit}
+  @media (max-width: 900px){
+    .layout{grid-template-columns:1fr}
+    nav.toc{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}
+    main{padding:20px 16px 60px}
+    .toolbar{position:static;padding:10px 16px 0}
+  }
+  @media print{
+    body{background:#fff;color:#000;font-size:11.5pt}
+    nav.toc,.toolbar{display:none}
+    .layout{display:block}
+    main{max-width:none;padding:0}
+    h2{break-after:avoid;break-before:page}
+    table,.card,.callout,pre,.gantt{break-inside:avoid}
+    a{color:#000;text-decoration:none}
+    @page{size:A4;margin:16mm}
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button onclick="document.documentElement.setAttribute('data-theme',document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark')">Theme</button>
+  <button onclick="window.print()">Print / PDF</button>
+</div>
+<div class="layout">
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#front"><span class="num">i</span>Front matter</a></li>
+    <li><a href="#status"><span class="num">0</span>Report status map</a></li>
+    <li><a href="#ch1"><span class="num">1</span>Introduction</a></li>
+    <li><a href="#ch2"><span class="num">2</span>Background Study</a></li>
+    <li><a href="#ch3"><span class="num">3</span>System Requirement &amp; Design</a></li>
+    <li><a href="#ch4"><span class="num">4</span>System Design</a></li>
+    <li><a href="#ch5"><span class="num">5</span>Intelligent Computing Methods</a></li>
+    <li><a href="#ch6"><span class="num">6</span>Implementation</a></li>
+    <li><a href="#ch7"><span class="num">7</span>Testing &amp; Evaluation</a></li>
+    <li><a href="#ch8"><span class="num">8</span>Ethics, Privacy &amp; Safety</a></li>
+    <li><a href="#ch9"><span class="num">9</span>Conclusion &amp; Future Work</a></li>
+    <li><a href="#refs"><span class="num">R</span>References</a></li>
+    <li><a href="#appx"><span class="num">A</span>Appendices</a></li>
+  </ol>
+</nav>
+<main>
+
+<header class="cover" id="cover">
+  <p class="small" style="letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">CAT405 &middot; Intelligent Computing Major Project &middot; Academic Session 2026/2027</p>
+  <h1>Ally: AI-Powered Intelligent Companion and Safety Monitoring System</h1>
+  <p class="sub">Final Project Report &mdash; <b>living draft</b>, structured for submission on 16 May 2027</p>
+  <div class="meta">
+    <div><span>Author</span>Wan Jun Xian</div>
+    <div><span>Matric number</span>22305441</div>
+    <div><span>Email</span>junxian@student.usm.my</div>
+    <div><span>Supervisor</span>To be assigned &mdash; SPTA bidding 28 Sep &ndash; 11 Oct 2026</div>
+    <div><span>School</span>School of Computer Sciences, Universiti Sains Malaysia, 11800 USM, Penang</div>
+    <div><span>Draft date</span>22 September 2026 &mdash; Week 0 of 34</div>
+  </div>
+  <div class="callout warn" style="margin-top:20px">
+    <b>What this document is.</b> This is the <b>final-report skeleton</b> for a project that has just started.
+    Chapter and section structure follows the CAT304 Group 48 final report used as the format reference; the content
+    is Ally's own, drawn from <code>Ally_Project_Plan.html</code> v1.2 and <code>docs/context/</code>.
+    Every chapter that is not yet written states <b>what will fill it and in which sprint</b>. Every number carries a
+    provenance tag: <span class="badge v1">MEASURED</span> has a result file, a date and a git SHA behind it;
+    <span class="badge v2">TARGET</span> is an engineering goal not yet measured; <span class="badge v3">PLANNED</span>
+    marks a section whose content does not exist yet. <b>No number or citation in this document was invented.</b>
+  </div>
+</header>
+
+<section id="front">
+<h2><span class="num-h">i</span>Front matter</h2>
+
+<h3>i. Declaration</h3>
+<p>I hereby declare that the work presented in this project report is my own original work and has not been submitted
+for any other degree or qualification at this or any other institution. All sources of information, assistance and
+references used in this report have been properly acknowledged.</p>
+<p>Software-engineering assistance from AI coding agents (Claude Code, configured as the thirteen-role development team
+described in &sect;1.8) was used throughout implementation under my direction as project owner. Every requirement,
+threshold, target and measured result in this report was set, reviewed and accepted by me; the agents proposed and
+implemented, they did not decide. This declaration is made explicitly rather than omitted, and the working method is
+documented in <code>CLAUDE.md</code> and <code>Ally_Agile_Readiness.html</code> in the project repository.</p>
+<div class="sig"></div>
+<p class="small">Wan Jun Xian, Student, Universiti Sains Malaysia.</p>
+
+<h3>ii. Acknowledgements</h3>
+<div class="todo"><b>PLANNED &mdash; written at code freeze (Sprint S10, 3&ndash;9 May 2027).</b> To acknowledge: the project
+supervisor (assigned after SPTA, 11 Oct 2026); the School of Computer Sciences; the volunteers who consent to the
+staged-fall and usability sessions in Sprints S9&ndash;S10; family and friends. Written last so that the people who
+actually helped are the ones named.</div>
+
+<h3>iii. Abstrak (Bahasa Malaysia)</h3>
+<p>Ally ialah sistem prototaip penyelidikan yang menggunakan komputer riba dan sebuah kamera web untuk memantau
+keselamatan seorang warga emas yang tinggal bersendirian di satu ruang kediaman. Sistem ini menganggar kedudukan sendi
+badan (<i>pose estimation</i>) secara setempat pada GPU komputer riba, mengekstrak ciri kinematik daripada tetingkap masa
+selama 1&ndash;2 saat, dan mengelaskan kejadian jatuh menggunakan model temporal, di samping mengesan ketidakaktifan
+berpanjangan dan membaca petunjuk emosi daripada ekspresi wajah. Perbezaan utama Ally berbanding sistem sedia ada ialah
+langkah pertengahan: apabila sesuatu kejadian dikesan, Ally <b>bercakap dengan penghuni terlebih dahulu</b> &mdash;
+bertanya khabar melalui pertuturan, mendengar jawapan, dan hanya menghubungi penjaga melalui Telegram selepas pengesahan
+gagal atau tidak dijawab. Keputusan eskalasi dimiliki sepenuhnya oleh mesin keadaan terhingga (<i>finite-state
+machine</i>) di dalam peranti, bukan oleh model bahasa. Video mentah tidak pernah disimpan ke cakera dan tidak pernah
+meninggalkan peranti; hanya teks perbualan, ringkasan keadaan dalam format JSON dan satu bingkai kunci bagi setiap
+kejadian melintasi sempadan privasi. Laporan ini membentangkan kajian latar, keperluan sistem, reka bentuk seni bina,
+kaedah pengkomputeran pintar, pelaksanaan, serta rancangan pengujian dan penilaian bagi sistem tersebut.</p>
+<p class="small"><b>Nota:</b> abstrak ini menerangkan <i>reka bentuk</i> sistem. Keputusan penilaian akan dimasukkan
+selepas Sprint S8 (5&ndash;18 April 2027).</p>
+
+<h3>iv. Abstract (English)</h3>
+<p>Ally is a research prototype that uses a laptop and a single webcam to watch over one older adult living alone in one
+living-area room. It runs pose estimation locally on the laptop GPU, extracts kinematic features over a 1&ndash;2 second
+window and classifies falls with a temporal model, while also detecting prolonged inactivity and reading a mood cue from
+facial expression. What separates Ally from every shipped product surveyed in Chapter 2 is the middle step: when an event
+fires, Ally <b>talks to the person first</b> &mdash; it asks aloud whether they are all right, listens for a reply, and
+notifies a guardian over Telegram only after verification fails or goes unanswered. The escalation decision is owned by
+an on-device finite-state machine, never by the language model, which may only label a reply <code>fine</code>,
+<code>help</code> or <code>unclear</code>. Raw video is never written to disk and never leaves the device; only
+conversation text, a JSON state summary and one keyframe per event cross the privacy boundary. This report presents the
+background study, system requirements, architectural design, the intelligent-computing methods and their construction,
+the implementation, and the testing and evaluation plan.</p>
+<p class="small"><b>Note:</b> this abstract describes the system as <i>designed</i>. Evaluation results are inserted
+after Sprint S8 (5&ndash;18 April 2027); the abstract is rewritten at code freeze to lead with the measured fall recall,
+false-alarm rate and usability score.</p>
+
+<h3>v. List of Tables</h3>
+<p class="small">Tables marked <span class="badge v3">PLANNED</span> exist as empty shells with their target column
+filled; see &sect;7.4.</p>
+<ul class="small">
+  <li>Table 0.1 &mdash; Chapter completeness map</li>
+  <li>Table 1.1 &mdash; System objectives traced to requirements and tests</li>
+  <li>Table 1.2 &mdash; Uniqueness of Ally against existing systems</li>
+  <li>Table 1.3 &mdash; The thirteen-role agent team and its responsibilities</li>
+  <li>Table 2.1 &mdash; Comparison of existing systems</li>
+  <li>Table 2.2 &mdash; Summary of AI recognition methods considered</li>
+  <li>Table 3.1 &mdash; Scope: in, out, and explicitly excluded</li>
+  <li>Table 3.2 &mdash; Work breakdown structure by sprint</li>
+  <li>Table 3.3 &mdash; SWOT analysis</li>
+  <li>Table 3.4 &mdash; User stories (US-1&hellip;US-9)</li>
+  <li>Table 3.5 &mdash; Functional requirements (FR-1&hellip;FR-13)</li>
+  <li>Table 3.6 &mdash; Non-functional requirements (NFR-1&hellip;NFR-7)</li>
+  <li>Table 3.7 &mdash; Hardware and software specification</li>
+  <li>Table 4.1 &mdash; Module contracts at each boundary</li>
+  <li>Table 4.2 &mdash; Event-engine state transition table</li>
+  <li>Table 4.3 &mdash; What crosses the privacy boundary</li>
+  <li>Table 5.1 &mdash; Intelligent-computing method table</li>
+  <li>Table 6.1 &mdash; Implementation status by module, with line counts and tests</li>
+  <li>Table 7.1 &mdash; Levels of testing</li>
+  <li>Table 7.2&ndash;7.7 &mdash; Result tables 1&ndash;6 <span class="badge v3">PLANNED</span></li>
+  <li>Table 7.8 &mdash; Measured results to date</li>
+</ul>
+
+<h3>vi. List of Figures</h3>
+<ul class="small">
+  <li>Figure 3.1 &mdash; Gantt chart, Sep 2026 &ndash; May 2027</li>
+  <li>Figure 4.1 &mdash; System architecture and privacy boundary</li>
+  <li>Figure 4.2 &mdash; Event-engine state diagram</li>
+  <li>Figure 4.3 &mdash; Entity-relationship diagram <span class="badge v3">PLANNED &mdash; S3</span></li>
+  <li>Figure 4.4 &mdash; UML class diagram <span class="badge v3">PLANNED &mdash; SRD, Nov 2026</span></li>
+  <li>Figure 4.5&ndash;4.9 &mdash; Dashboard and Telegram interface designs <span class="badge v3">PLANNED &mdash; S5/S6</span></li>
+  <li>Figure 6.1&hellip; &mdash; Implementation screenshots <span class="badge v3">PLANNED &mdash; S1 onward</span></li>
+  <li>Figure 7.1 &mdash; Confusion matrix, FER <span class="badge v3">PLANNED &mdash; S5</span></li>
+</ul>
+
+<h3>vii. List of Abbreviations</h3>
+<table>
+  <tr><th style="width:150px">Abbreviation</th><th>Full name</th></tr>
+  <tr><td>ADL</td><td>Activities of Daily Living</td></tr>
+  <tr><td>ADR</td><td>Architecture Decision Record</td></tr>
+  <tr><td>CI</td><td>Continuous Integration</td></tr>
+  <tr><td>CNN</td><td>Convolutional Neural Network</td></tr>
+  <tr><td>DoD / DoR</td><td>Definition of Done / Definition of Ready</td></tr>
+  <tr><td>DOSM</td><td>Department of Statistics Malaysia</td></tr>
+  <tr><td>EMA</td><td>Exponential Moving Average</td></tr>
+  <tr><td>FA</td><td>False Alarm</td></tr>
+  <tr><td>FER</td><td>Facial Expression Recognition</td></tr>
+  <tr><td>FPS</td><td>Frames Per Second</td></tr>
+  <tr><td>FR / NFR</td><td>Functional / Non-Functional Requirement</td></tr>
+  <tr><td>FSM</td><td>Finite-State Machine</td></tr>
+  <tr><td>GRU</td><td>Gated Recurrent Unit</td></tr>
+  <tr><td>LLM / VLM</td><td>Large Language Model / Vision-Language Model</td></tr>
+  <tr><td>LOSO-CV</td><td>Leave-One-Subject-Out Cross-Validation</td></tr>
+  <tr><td>MVP</td><td>Minimum Viable Product</td></tr>
+  <tr><td>ONNX</td><td>Open Neural Network Exchange</td></tr>
+  <tr><td>SPTA</td><td>USM online project bidding and supervision system</td></tr>
+  <tr><td>SRD</td><td>Software Requirements &amp; Design (report and presentation deliverable)</td></tr>
+  <tr><td>STT / TTS</td><td>Speech-To-Text / Text-To-Speech</td></tr>
+  <tr><td>SUS</td><td>System Usability Scale</td></tr>
+  <tr><td>TTL</td><td>Time To Live (retention period)</td></tr>
+  <tr><td>VAD</td><td>Voice Activity Detection</td></tr>
+  <tr><td>VRAM</td><td>Video Random Access Memory</td></tr>
+  <tr><td>WBS</td><td>Work Breakdown Structure</td></tr>
+  <tr><td>WHO</td><td>World Health Organization</td></tr>
+</table>
+</section>
+
+<section id="status">
+<h2><span class="num-h">0</span>Report status map</h2>
+<p>This chapter exists only in the living draft and is deleted before submission. It is the honest answer to
+&ldquo;where is this project?&rdquo; on <b>22 September 2026</b>, which is <b>Week 0 of 34</b> &mdash; five days into a
+project that ends on 30 May 2027.</p>
+
+<div class="kpi">
+  <div><b>4 / 30</b><span>Python modules implemented; the rest are stubs</span></div>
+  <div><b>79</b><span>tests passing (1 skipped, asserts nothing)</span></div>
+  <div><b>29.9</b><span>FPS measured end-to-end, target &ge; 15</span></div>
+  <div><b>0 / 6</b><span>final result tables filled</span></div>
+</div>
+
+<table>
+<caption>Table 0.1 &mdash; Chapter completeness map. &ldquo;Fills it&rdquo; names the artefact that turns the section from
+plan into report.</caption>
+<tr><th style="width:150px">Chapter</th><th style="width:110px">Status</th><th>What fills it</th><th style="width:130px">When</th></tr>
+<tr><td>1 Introduction</td><td><span class="badge v1">Draftable now</span></td><td>Charter, sourced problem facts and scope already exist in the plan. Needs supervisor name and the proposal's final wording.</td><td>Proposal, 18 Oct 2026</td></tr>
+<tr><td>2 Background Study</td><td><span class="badge v2">Partial</span></td><td>Competitor survey and method survey exist and are sourced. Needs 12&ndash;15 literature notes (backlog B-6) to become a proper review.</td><td>Weeks 1&ndash;3, Oct 2026</td></tr>
+<tr><td>3 Requirements &amp; Design</td><td><span class="badge v1">Draftable now</span></td><td>US/FR/NFR tables, scope, schedule and Agile process are written. SWOT is new analysis in this document. Carer interviews still to run.</td><td>SRD, 29 Nov 2026</td></tr>
+<tr><td>4 System Design</td><td><span class="badge v2">Partial</span></td><td>Architecture, contracts, FSM and privacy boundary are complete. <b>ERD, UML class diagram and all interface design are empty.</b></td><td>SRD; S3; S5&ndash;S6</td></tr>
+<tr><td>5 Methods</td><td><span class="badge v1">Draftable now</span></td><td>Method table and construction steps written; this is the CAT405-graded core. Results columns empty.</td><td>Methods now; results S2/S5/S8</td></tr>
+<tr><td>6 Implementation</td><td><span class="badge v4">Mostly empty</span></td><td>Four modules exist. Perception pipeline S1, classifier S2, FSM+notify S3, speech+agent S4, emotion+dashboard S5.</td><td>S1&ndash;S6, Dec&ndash;Mar</td></tr>
+<tr><td>7 Testing &amp; Evaluation</td><td><span class="badge v2">Plan only</span></td><td>Test plan and the six result-table shells are written. <b>Every result cell is blank.</b> Filled by the S8 evaluation runs.</td><td>S8, 5&ndash;18 Apr 2027</td></tr>
+<tr><td>8 Ethics &amp; Safety</td><td><span class="badge v1">Draftable now</span></td><td>Consent, data minimisation, cloud boundary and security checklist written. Consent forms to be signed; ethics clearance to be confirmed with the supervisor.</td><td>SRD; before S9</td></tr>
+<tr><td>9 Conclusion</td><td><span class="badge v4">Empty</span></td><td>Cannot be written before results exist. Future-work list already exists as the STRETCH backlog.</td><td>S10, May 2027</td></tr>
+</table>
+
+<div class="callout bad">
+<b>The five things that are true today, stated plainly.</b>
+<ol style="margin-bottom:0">
+  <li>The pose pipeline runs and is fast enough &mdash; that is the one end-to-end capability proven so far.</li>
+  <li>Four of roughly thirty Python modules contain real code; the rest are import-able stubs of four to seven lines.</li>
+  <li><b>No fall has ever been detected by this system.</b> The rule baseline is implemented and unit-tested, but has
+      not been run against UR Fall keypoints, because two thresholds are still unset and the subject map is unfilled.</li>
+  <li>The replay test &mdash; the project's self-verification loop &mdash; currently skips, so the Definition of Done's
+      replay gate asserts nothing until the first session is recorded in Sprint S1.</li>
+  <li>No supervisor is assigned yet; SPTA bidding opens 28 September 2026.</li>
+</ol>
+</div>
+</section>
+
+<section id="ch1">
+<h2><span class="num-h">1</span>Introduction</h2>
+
+<h3>1.1 Background</h3>
+<p>A fall is not dangerous only because of the impact. It is dangerous because of the hours that can follow it. The
+World Health Organization records that an estimated 684&nbsp;000 individuals die from falls globally each year, that
+falls are the second leading cause of unintentional injury deaths worldwide, that adults older than 60 years suffer the
+greatest number of fatal falls, and that 37.3 million falls severe enough to require medical attention occur each year
+[1]. <span class="badge v1">VERIFIED &middot; PRIMARY</span></p>
+<p>Malaysia is ageing into exactly this risk. The share of the population aged 60 and over stood at 7.9 per cent in 2010
+and is projected to reach 15.3 per cent by 2030 [2]. <span class="badge v2">SECONDARY</span> &mdash; this figure is a
+DOSM projection quoted by LPPKN's MPRH portal; the original DOSM table is to be located and cited directly before the
+graded submission.</p>
+<div class="callout">
+<b>A statistic this report deliberately does not make.</b> No verified Malaysian statistic on older adults
+<i>living alone</i> was found during research for the project plan. The obvious sentence &mdash; &ldquo;X per cent of
+Malaysian seniors live alone&rdquo; &mdash; is therefore absent from this report and will stay absent unless a DOSM or
+peer-reviewed source is found. The premise of the project does not depend on it.
+</div>
+<p>What the sourced facts support is narrower and sufficient: falls among older adults are common, frequently serious,
+and the population at risk in Malaysia is growing. The gap this project addresses is the one between the fall and the
+help &mdash; the interval in which nobody knows anything has happened.</p>
+
+<h3>1.2 Problem statement</h3>
+<p>The existing responses to that interval each break in a predictable way.</p>
+<ul>
+  <li><b>A wearable pendant does nothing if it is not worn.</b> Compliance is the failure mode, and it bites exactly
+      when the device is least convenient &mdash; at night, in the shower, after a shower.</li>
+  <li><b>A camera that only records does not summon anyone.</b> Footage is evidence after the fact, not a response.</li>
+  <li><b>A camera that only alerts creates a different problem: false alarms.</b> A system that messages a working adult
+      several times a week for a person lying on a sofa gets switched off, and a switched-off system detects nothing.</li>
+  <li><b>None of them keeps the person company.</b> Isolation is the condition that makes living alone risky in the
+      first place, and a monitoring device that treats the person as a subject rather than someone to talk to does not
+      touch it.</li>
+</ul>
+<p>The problem, stated as one sentence: <b>an older adult living alone can fall, or be unwell, and remain unnoticed for
+hours, while the technologies that could notice either depend on being worn, or report to a third party without ever
+engaging the person themselves.</b></p>
+
+<h3>1.3 Motivation</h3>
+<p>The middle step is missing. Between &ldquo;something happened&rdquo; and &ldquo;call the family&rdquo; there is a
+question a human would ask first: <i>are you all right?</i> Asking it does three things at once. It reaches the person
+immediately, with a voice, when they may be frightened and alone. It gathers the context that decides whether this is an
+emergency &mdash; a reply of &ldquo;I'm fine, I dropped something&rdquo; ends the incident. And it filters the alerts, so
+that the notifications a guardian does receive are worth their attention. A system that asks first can afford to be
+sensitive, because the conversation absorbs the errors.</p>
+
+<h3>1.4 System objectives</h3>
+<table>
+<caption>Table 1.1 &mdash; System objectives, each traced to the requirements it serves and the test that will show it was met.</caption>
+<tr><th style="width:40px">#</th><th>Objective</th><th style="width:130px">Serves</th><th style="width:230px">Verified by</th></tr>
+<tr><td>O1</td><td>Detect a fall from webcam video in real time, on consumer hardware, using pose-derived features rather than raw video.</td><td>FR-1, FR-2, US-1</td><td>LOSO-CV on UR Fall; &sect;7.4 Result Table 1</td></tr>
+<tr><td>O2</td><td>Detect prolonged inactivity while a person is present, as a second and independent safety signal.</td><td>FR-3, US-2</td><td>10 staged trials, detection within T &plusmn; 30 s</td></tr>
+<tr><td>O3</td><td>Read a mood cue from facial expression and use it &mdash; and only it &mdash; to start a gentle conversation.</td><td>FR-4, FR-9, US-3</td><td>FER test-split metrics; live agreement on 30 clips</td></tr>
+<tr><td>O4</td><td>Speak to the monitored person first on every event, and listen to the answer.</td><td>FR-5, FR-6, US-4</td><td>30 dialogue scenarios; <code>VERIFY</code> by voice end-to-end</td></tr>
+<tr><td>O5</td><td>Escalate to a guardian on Telegram only after verification, with the decision owned by an on-device state machine.</td><td>FR-7, US-5</td><td>Unit test per FSM transition; staged fall &rarr; Telegram</td></tr>
+<tr><td>O6</td><td>Keep raw video on the device at all times, and retain only one keyframe per event for seven days.</td><td>NFR-2</td><td>Retention test with a fake clock; review of every upload path</td></tr>
+<tr><td>O7</td><td>Keep working when the internet does not: detect, speak a scripted check-in, sound a local alarm, queue the notification.</td><td>NFR-3</td><td>Resilience test &mdash; network pulled mid-event</td></tr>
+<tr><td>O8</td><td>Give the guardian a dashboard of today's events and a mood trend on the local network.</td><td>FR-8, US-6</td><td>Usability sessions, 3&ndash;5 volunteers</td></tr>
+</table>
+
+<h3>1.5 Proposed solution</h3>
+<p>Ally is a laptop and a single fixed webcam in one living-area room. Its pipeline is deliberately shaped so that the
+expensive, cloud-based reasoning happens rarely and the cheap, local perception happens continuously.</p>
+<ol>
+  <li><b>See.</b> OpenCV captures 640&times;480 frames. A pose model on the laptop GPU turns each frame into keypoints.
+      Frames live in a 10-second RAM ring buffer and are never written to disk.</li>
+  <li><b>Judge.</b> Kinematic features over a 1&ndash;2 second window feed a temporal classifier for falls; keypoint
+      motion energy feeds an inactivity timer; a small CNN on detected faces feeds a smoothed mood estimate.</li>
+  <li><b>Decide.</b> A pure finite-state machine &mdash; no camera, no network, no clock of its own &mdash; moves from
+      <code>NORMAL</code> through <code>SUSPECTED_*</code> and <code>VERIFY</code> to <code>CONFIRMED</code>,
+      <code>STOOD_DOWN</code> or <code>FALSE_ALARM</code>.</li>
+  <li><b>Talk.</b> On entering <code>VERIFY</code>, Ally speaks immediately from canned audio, then converses through
+      speech-to-text, a cloud language model and text-to-speech. In parallel it sends one keyframe to a vision model and
+      gets a structured second opinion.</li>
+  <li><b>Escalate, only then.</b> If the person says they are fine and the vision model does not contradict it, Ally
+      stands down. If the reply is <code>help</code> or <code>unclear</code>, or there is no reply after two prompts,
+      the state machine confirms and creates the notification. Telegram carries the event type, the time, the keyframe
+      and the transcript.</li>
+</ol>
+<div class="callout ok">
+<b>The architectural commitment that defines this project (ADR-001).</b> The language model has <b>no tool that sends a
+Telegram message</b>. In <code>VERIFY</code> its only output is a label &mdash; <code>fine</code>, <code>help</code> or
+<code>unclear</code>. It may <i>request</i> escalation or stand-down; the event engine decides. Speech-to-text output is
+treated as untrusted input, so a voice from a television saying &ldquo;don't call anyone&rdquo; cannot suppress an
+alert. The safety-critical path contains no model output that has not passed through a state machine with a unit test on
+every transition.
+</div>
+
+<h3>1.6 Benefits and significance</h3>
+<ul>
+  <li><b>For the monitored person:</b> help arrives even when a phone is out of reach, nothing must be worn, and the
+      system speaks to them rather than about them.</li>
+  <li><b>For the guardian:</b> an alert that has already been checked, arriving with a picture and a transcript, so that
+      urgency is judged in seconds rather than by calling to find out.</li>
+  <li><b>For privacy:</b> the family's living room is not streamed to a server. Raw video stays in RAM on a machine in
+      the house.</li>
+  <li><b>Academically:</b> the project joins continuous local perception to proactive dialogue and measures what the
+      join is worth &mdash; specifically, how many false alarms the verification step removes, and how many true events
+      it costs. That ablation is the report's central empirical claim.</li>
+  <li><b>SDG alignment:</b> SDG 3 (Good Health and Well-being) through injury response and reduced isolation; SDG 10
+      (Reduced Inequalities) through low-cost hardware rather than a subscription care service.</li>
+</ul>
+
+<h3>1.7 Uniqueness of the proposed solution</h3>
+<p>Every shipped product surveyed in Chapter 2 stops at alerting a third party. ElliQ converses but cannot see. The one
+system found that connects vision to dialogue is a mobile robot in a care facility.</p>
+<table>
+<caption>Table 1.2 &mdash; Uniqueness of Ally against existing systems. Sources and detail in &sect;2.3.</caption>
+<tr><th>Capability</th><th>ElliQ [3]</th><th>SafelyYou [4]</th><th>Vayyar [5]</th><th>Sensi.AI [6]</th><th>Liu et al. [8]</th><th>Ally</th></tr>
+<tr><td>Detects a fall</td><td>&ndash;</td><td>Yes</td><td>Yes</td><td>Audio cues</td><td>Yes</td><td><b>Yes</b></td></tr>
+<tr><td>Speaks to the person first</td><td>Yes</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>Request-driven</td><td><b>Yes, proactively</b></td></tr>
+<tr><td>Verifies before alerting a human</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>Posture check</td><td><b>Dialogue + vision, two votes</b></td></tr>
+<tr><td>Reads emotional state</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td><b>Facial cue, conversation only</b></td></tr>
+<tr><td>Raw video stays on device</td><td>n/a</td><td>Clip saved</td><td>No camera</td><td>No camera</td><td>Not stated</td><td><b>Yes, by design</b></td></tr>
+<tr><td>Home, one room, consumer hardware</td><td>Yes</td><td>Facility</td><td>Facility</td><td>Home pods</td><td>Facility robot</td><td><b>Yes</b></td></tr>
+</table>
+<p><b>When Ally is the wrong choice</b>, stated as plainly as the claim. For bathroom or bedroom coverage, or a person
+who rejects cameras, radar [5] or audio-only [6] is more appropriate; Ally excludes those rooms by design. For a staffed
+facility needing incident video for clinical review, SafelyYou-type systems are purpose-built. For someone who mainly
+wants reminders and conversation without safety monitoring, ElliQ is a finished consumer product and does it well.</p>
+
+<h3>1.8 Contribution and working method</h3>
+<p>The CAT304 reference report divides this section between three group members. CAT405 is an individual project, so this
+section instead documents something the examiner should be able to see clearly: the project is built by one student
+directing a structured team of AI development agents, and the division of authority between them is explicit.</p>
+<table>
+<caption>Table 1.3 &mdash; Roles. The human holds every decision that a number, a requirement or an acceptance depends on.</caption>
+<tr><th style="width:200px">Role</th><th>Responsibility</th></tr>
+<tr><td><b>Human (Wan Jun Xian)</b></td><td>Product Owner and sponsor. Orders the backlog, <b>owns every threshold, target and cooldown</b>, accepts or rejects work, runs the supervisor relationship, writes the graded prose, records literature and consent.</td></tr>
+<tr><td>Orchestrator session</td><td>Scrum-Master-at-the-keyboard: runs stand-up, planning, review and retro; the only thing that can call an agent.</td></tr>
+<tr><td><code>agile-coach</code></td><td>Read-only gate before every delegation: slice size, required order, Definition of Done. Reports what is not done or done out of order.</td></tr>
+<tr><td><code>software-architect</code></td><td>Module contracts, FSM design, privacy boundary, ADR log. Proposes two options; the human decides.</td></tr>
+<tr><td><code>product-owner</code>, <code>business-analyst</code></td><td>Read-only scope advice; turning vague requests and examiner feedback into testable FR/NFR rows and SRD text.</td></tr>
+<tr><td><code>backend-dev</code>, <code>frontend-dev</code>, <code>fullstack-dev</code></td><td>Scoped implementation behind a defined contract, with a test to make green.</td></tr>
+<tr><td><code>ml-engineer</code></td><td>Dataset loaders, feature engineering, classifiers, LOSO-CV, ONNX export, result tables.</td></tr>
+<tr><td><code>qa-engineer</code>, <code>tech-lead</code></td><td>Adversarial testing and diff review against the hard rules; called after any builder reports done on the escalation path.</td></tr>
+<tr><td><code>devops-engineer</code>, <code>project-manager</code>, <code>ui-ux-designer</code></td><td>Tooling, CI, pinning and runbooks; schedule tracking; screen and message design before any UI code.</td></tr>
+</table>
+<p>The process is governed by <code>CLAUDE.md</code> in the repository, which encodes nine hard rules &mdash; among them
+that the state machine owns escalation, that raw frames are never written to disk, and that <b>no threshold, target or
+cooldown may be changed without a recorded decision entry</b>. A thirteen-agent readiness review against an Agile
+pre-development playbook was carried out on 22 September 2026 and is preserved as
+<code>Ally_Agile_Readiness.html</code>.</p>
+</section>
+
+<section id="ch2">
+<h2><span class="num-h">2</span>Background Study</h2>
+
+<h3>2.1 Introduction</h3>
+<p>This chapter establishes three things: that the problem is real and sized (&sect;2.2), that the existing systems leave
+a specific gap rather than a vague one (&sect;2.3), and that the computational methods chosen are the appropriate ones
+for the constraints this project actually has (&sect;2.4&ndash;2.5). Sources are marked
+<span class="badge v1">PRIMARY</span> where the claim was read at the originating source and
+<span class="badge v2">SECONDARY</span> where it was read at one remove; secondary items are to be replaced or confirmed
+before the graded submission.</p>
+<div class="todo"><b>PLANNED &mdash; Weeks 1&ndash;3 (28 Sep &ndash; 18 Oct 2026), backlog item B-6.</b> Twelve to fifteen
+literature notes, each with a citation, a one-line claim and a statement of relevance, filed in
+<code>docs/proposal/lit/</code>. They expand &sect;2.4 from a design-justification table into a proper related-work
+review, which is what an examiner will expect of a final report. The product survey below is already sourced; the
+academic depth is the part still missing.</div>
+
+<h3>2.2 Falls, ageing and the response gap</h3>
+<p>The quantitative basis is given in &sect;1.1 and is not repeated. Three qualitative points shape the design.</p>
+<ul>
+  <li><b>Time on the floor is the variable that matters.</b> The severity of a fall's outcome depends heavily on how long
+      the person lies there before help arrives. This is the variable a detection system can actually change, and it is
+      why detection latency and notification latency are separate budgeted numbers in NFR-1.</li>
+  <li><b>Compliance defeats wearables.</b> Any device requiring the person to wear or carry it inherits their memory and
+      their willingness. An ambient sensor inherits neither.</li>
+  <li><b>Alert fatigue defeats alerting.</b> A guardian who receives a false alert daily stops reading them. This is why
+      the false-alarm budget in this project is deliberately split into two tiers (ADR-003): what the perception layer
+      may suspect, and what may actually reach a human.</li>
+</ul>
+
+<h3>2.3 Existing systems</h3>
+<table>
+<caption>Table 2.1 &mdash; Comparison of existing systems. &ldquo;What it lacks relative to Ally&rdquo; is a positioning
+statement, not a criticism &mdash; each product is good at what it was built for.</caption>
+<tr><th style="width:150px">Product / paper</th><th>What it does</th><th>What it lacks relative to Ally</th><th style="width:90px">Source</th></tr>
+<tr><td><b>ElliQ</b> (Intuition Robotics) [3]</td><td>Tabletop AI companion for older adults: proactive voice conversation, reminders, health check-ins, caregiver alerts. States it is &ldquo;not a medical device&rdquo;; designed for HIPAA compliance.</td><td>No camera, no computer-vision monitoring, no fall detection and no visual emotion reading found on the product site. <b>It cannot see that you fell.</b></td><td><span class="badge v1">PRIMARY</span></td></tr>
+<tr><td><b>SafelyYou</b> [4]</td><td>Wall-mounted cameras with AI detect falls in assisted-living and memory-care facilities and alert staff; saves a short fall clip; non-fall video deleted within 60 s; no audio.</td><td>Facility product, alert-only. Does not talk to the resident. Closest to Ally's fall detector, furthest from its companion role.</td><td><span class="badge v2">SECONDARY</span></td></tr>
+<tr><td><b>Vayyar Care</b> [5]</td><td>Radar-based fall detection &mdash; no camera, no sound &mdash; with immediate alerts, for care facilities.</td><td>No interaction with the person; no emotional or contextual understanding.</td><td><span class="badge v1">PRIMARY</span></td></tr>
+<tr><td><b>Sensi.AI</b> [6]</td><td>Audio-only pods detect care anomalies (falls, distress, patterns), capture clips and transcripts, alert family and home-care agencies.</td><td>No vision. Reports <i>about</i> the senior to others rather than engaging the senior.</td><td><span class="badge v2">SECONDARY</span></td></tr>
+<tr><td><b>Google Nest Cam + Gemini for Home</b> [7]</td><td>Richer AI descriptions of camera events, zoomed previews (July 2026 update).</td><td>No fall-detection or elderly-monitoring feature found; no conversational care role.</td><td><span class="badge v2">SECONDARY</span></td></tr>
+<tr><td><b>Liu, Vu &amp; Liu (2026)</b> [8]</td><td>Mobile service robot for elderly-care facilities: gimbal-based visual tracking, LLM speech interaction, VLM-based fall-posture safety check.</td><td>Robot platform (cost, mobility). Dialogue is request-driven rather than proactive; emotion not addressed. <b>Closest academic analogue</b> &mdash; Ally must position against it explicitly.</td><td><span class="badge v1">PRIMARY</span></td></tr>
+<tr><td><b>ContextAgent</b>, Yang et al., NeurIPS 2025 [9]</td><td>Framework for proactive LLM agents that use sensory context to predict when help is needed and act without being prompted.</td><td>General framework built around wearables. Ally applies the same &ldquo;sensory context &rarr; proactive service&rdquo; idea to a fixed home camera and a care persona.</td><td><span class="badge v1">PRIMARY</span></td></tr>
+</table>
+<p><b>The gap, precisely.</b> Products that see do not speak; the product that speaks does not see; the system that does
+both is a robot in an institution. Ally's claim is a specific combination on specific hardware: <i>fixed low-cost camera
+&rarr; vision-derived state &rarr; proactive two-way conversation with the monitored person &rarr; verified escalation to
+a guardian, with raw video never leaving the home.</i></p>
+
+<h3>2.4 Artificial-intelligence methods considered</h3>
+<p>Each subsystem was chosen against a named alternative, under three binding constraints: a 4&nbsp;GB RTX&nbsp;2050 GPU,
+a privacy rule that forbids sending video off-device, and a solo developer's time budget of 15&ndash;20 hours per week.</p>
+<table>
+<caption>Table 2.2 &mdash; Summary of AI recognition methods considered, with the alternative rejected and why. Construction
+detail is in Chapter 5.</caption>
+<tr><th style="width:140px">Task</th><th>Chosen method</th><th>Alternative rejected, and why</th></tr>
+<tr><td>Fall detection</td><td>2-D pose estimation (YOLO-pose nano, 17 COCO keypoints [16], or MediaPipe Pose Landmarker, 33 landmarks [17]) &rarr; kinematic features over a 1&ndash;2 s window &rarr; temporal classifier (GRU; gradient-boosted trees and a rule detector as baselines).</td><td><b>3-D CNN video models</b> need far more data and compute than a 4&nbsp;GB GPU and 70 sequences allow. <b>Wearable accelerometers</b> reintroduce the compliance problem. <b>A VLM on every frame</b> is too slow and too costly &mdash; so the VLM becomes a second-stage verifier instead.</td></tr>
+<tr><td>Inactivity / presence</td><td>Keypoint motion energy plus a presence detector with hysteresis; configurable threshold T.</td><td>A learned model is unnecessary: the signal is simple, the behaviour must be explainable to a guardian, and a rule can be audited.</td></tr>
+<tr><td>Emotion cue</td><td>Face detection &rarr; lightweight CNN (MobileNetV3 or ResNet-18) fine-tuned on FER-2013 [12] &rarr; exponential moving average over 5&ndash;10 s &rarr; valence.</td><td><b>Multimodal affect models</b> are heavy and the GPU is already committed. FER on frontal faces is mature and cheap. The cue is a <b>soft trigger for conversation only</b>, never an alert by itself.</td></tr>
+<tr><td>Event verification</td><td>Cloud VLM, one keyframe plus a structured prompt, returning structured JSON used as a second vote.</td><td>Running verification locally on 4&nbsp;GB would mean a much weaker model. Sending one image per event decouples rare expensive reasoning from continuous cheap perception and yields an interpretable sentence for the guardian.</td></tr>
+<tr><td>Dialogue</td><td>Cloud LLM with a care-companion persona, short-term memory, and tools that issue <i>requests</i> to the event engine; structured outputs for reply classification.</td><td><b>Rule or intent bots</b> cannot do open-ended reassurance. <b>A local small LLM on 4&nbsp;GB</b> is noticeably weaker; this is a deliberate trade, mitigated by a scripted offline fallback.</td></tr>
+<tr><td>Speech</td><td>STT: faster-whisper on CPU int8 [14]. TTS: Piper [15], MIT-licensed.</td><td>Cloud speech would add latency and push audio off-device. Local audio also keeps the offline fallback honest. CPU placement leaves the GPU for vision.</td></tr>
+</table>
+
+<h3>2.5 System architecture layers</h3>
+<p>The reference report organises its architecture into client, AI, backend and storage layers. Ally's layering is
+different because its defining constraint is a privacy boundary rather than a client-server split.</p>
+<ol>
+  <li><b>Capture layer</b> &mdash; webcam, OpenCV, fixed at 640&times;480, feeding a bounded drop-oldest queue and a
+      10-second RAM ring buffer.</li>
+  <li><b>Local perception layer</b> &mdash; pose estimation, fall features and classifier, presence and inactivity, face
+      detection and FER. Runs on the laptop GPU. Emits only keypoints and scalars, never pixels.</li>
+  <li><b>Fusion layer</b> &mdash; the pure finite-state machine, cooldowns and person state. No I/O of any kind: no
+      camera, no network, and time is passed in rather than read. This is what makes it unit-testable transition by
+      transition.</li>
+  <li><b>Interaction layer</b> &mdash; speech I/O locally; dialogue and keyframe verification through a cloud model
+      behind a single client interface.</li>
+  <li><b>Persistence and delivery layer</b> &mdash; SQLite for events, transcripts and mood samples; a seven-day keyframe
+      retention job; a LAN-only dashboard; the Telegram bot with a single-chat-ID allowlist.</li>
+</ol>
+
+<h3>2.6 Summary</h3>
+<p>The problem is sized by primary sources. The gap is specific and is not closed by any surveyed product. The methods
+chosen are the ones that fit a 4&nbsp;GB GPU, a privacy rule and a solo schedule, and each was chosen against a named
+alternative that Chapter 5 must justify with measurements rather than assertion.</p>
+</section>
+
+<section id="ch3">
+<h2><span class="num-h">3</span>System Requirement and Design</h2>
+
+<h3>3.1 Introduction</h3>
+<p>This chapter states what the system must do, what it will deliberately not do, how the work is broken down over the
+34 weeks available, and which process governs it. The requirement tables below are stable: they are derived from the
+graded project plan and have already been revised by four architecture decision records.</p>
+
+<h3>3.2 Research scope, capabilities and limitations</h3>
+<table>
+<caption>Table 3.1 &mdash; Scope. The &ldquo;out&rdquo; column is as load-bearing as the &ldquo;in&rdquo; column; a
+scope that excludes nothing cannot be finished by one person in 34 weeks.</caption>
+<tr><th style="width:33%">In scope (MVP)</th><th style="width:33%">Out of scope</th><th>Why the exclusion</th></tr>
+<tr><td>Single fixed webcam, one person, one living-area room</td><td>Multi-camera, multi-person, whole-home coverage</td><td>Tracking identity across cameras is a project of its own</td></tr>
+<tr><td>Fall detection and prolonged-inactivity detection</td><td>Medical diagnosis or any emergency-device claim</td><td>Hard rule 6: Ally is a research prototype (&sect;8)</td></tr>
+<tr><td>Facial-expression mood cue as a conversation trigger</td><td>Clinical affect assessment</td><td>Expression is not emotion; the limitation is stated, not hidden</td></tr>
+<tr><td>Proactive spoken check-in and companionship</td><td>Bathrooms and bedrooms</td><td>Privacy: the rooms where a camera is least acceptable</td></tr>
+<tr><td>Verify-then-escalate on Telegram</td><td>Commercial hardware or a productised installer</td><td>This is a final-year prototype, not a product</td></tr>
+<tr><td>Local event log and LAN guardian dashboard</td><td>Cloud account, remote access, multi-tenant service</td><td>Would move data off-device and break NFR-2</td></tr>
+</table>
+<p><b>Known limitations, stated up front.</b> Performance under poor or changing lighting is a reported result, not an
+assumed one. A single fixed camera has occlusion blind spots. FER datasets are not representative of all populations.
+When the internet is unavailable Ally still detects, speaks and sounds a local alarm, but <b>no remote person is
+notified until connectivity returns</b>.</p>
+
+<h3>3.3 Project management</h3>
+<h4>3.3.1 Work breakdown structure</h4>
+<table>
+<caption>Table 3.2 &mdash; Work breakdown by sprint, with the exit criterion that closes each one. Sprints are two weeks.</caption>
+<tr><th style="width:80px">Sprint</th><th style="width:130px">Window</th><th>Work package</th><th style="width:250px">Exit criterion</th></tr>
+<tr><td>Proposal</td><td>21 Sep &ndash; 18 Oct 2026</td><td>SPTA supervisor bidding; literature notes; rule-baseline fall numbers on UR Fall; proposal sections</td><td>Project confirmed in SPTA; proposal uploaded 18 Oct</td></tr>
+<tr><td>SRD</td><td>2 &ndash; 29 Nov 2026</td><td>Carer interviews (3&ndash;5); use cases; FR/NFR; architecture and sequence diagrams; FSM spec; data model; wireframes; test plan; ethics</td><td>SRD uploaded 29 Nov</td></tr>
+<tr><td>SRD demo</td><td>30 Nov &ndash; 13 Dec 2026</td><td>Slides; two rehearsals; two-minute live demo with backup video</td><td>Delivered</td></tr>
+<tr><td><b>S1</b> Perception</td><td>14 &ndash; 27 Dec 2026</td><td>Capture &rarr; pose &rarr; keypoints over bounded queues; ring buffer; presence; inactivity timer; YOLO vs MediaPipe benchmark; <code>record_session.py</code> and <code>--replay</code>; per-model VRAM table</td><td>FPS &ge; 15; a recorded session replays to identical events; VRAM table filled</td></tr>
+<tr><td><b>S2</b> Fall classifier</td><td>28 Dec &ndash; 10 Jan 2027</td><td>Features; GRU and tree baselines; LOSO-CV on UR Fall (+ Le2i); choose &tau;<sub>fall</sub>; ONNX export; integrate</td><td>Recall &ge; 0.90 mean over folds with 95 % CI; result table v1</td></tr>
+<tr><td><b>S3</b> Engine + notify</td><td>11 &ndash; 24 Jan 2027</td><td>FSM with a unit test per transition; SQLite schema; Telegram bot with allowlist and acknowledgement; retention job; VLM verification</td><td>Staged fall &rarr; Telegram within 60 s; FSM tests green; retention test green</td></tr>
+<tr><td><b>S4</b> Speech + agent</td><td>25 Jan &ndash; 7 Feb 2027</td><td>VAD/STT/TTS; persona; strict tools as requests; reply classifier; streaming; effort chosen by measurement; offline fallback; first 10 scenarios including injection</td><td><code>VERIFY</code> end-to-end by voice; stand-down works; injection cases pass</td></tr>
+<tr><td><b>S5</b> Emotion + fusion</td><td>8 &ndash; 21 Feb 2027</td><td>FER fine-tune and evaluation (fallback: pretrained weights); mood EMA; <code>COMPANION_CHAT</code> with cooldowns; dashboard v1</td><td>Negative mood &rarr; proactive chat; FER table filled</td></tr>
+<tr><td><b>S6</b> Hardening</td><td>22 Feb &ndash; 7 Mar 2027</td><td>4-hour soak; resilience test; adversarial review and security review; demo script; no-internet fallback</td><td>Demo rehearsed twice without intervention</td></tr>
+<tr><td>M2 demo</td><td>8 &ndash; 21 Mar 2027</td><td>Progress demo against the SRD; capture examiner feedback</td><td>Delivered; feedback entered in the backlog</td></tr>
+<tr><td>S7 &ndash; S10</td><td>22 Mar &ndash; 9 May 2027</td><td>Feedback and at most two stretch items; final evaluation runs and ablations; user testing with 3&ndash;5 volunteers; code freeze and report chapters</td><td>All result tables final; <code>v1.0-rc</code> tagged; draft to supervisor by 7 May</td></tr>
+<tr><td>M3</td><td>10 &ndash; 30 May 2027</td><td>Incorporate comments; upload report 16 May; final demo</td><td>Submitted and demonstrated</td></tr>
+</table>
+<p class="small"><b>No new scope after 7 March 2027.</b> That date is the freeze; everything after it is evaluation,
+writing and rehearsal.</p>
+
+<h4>3.3.2 Gantt chart</h4>
+<div class="gantt">
+  <div class="months"><div></div><div class="scale"><div>Sep</div><div>Oct</div><div>Nov</div><div>Dec</div><div>Jan</div><div>Feb</div><div>Mar</div><div>Apr</div><div>May</div></div></div>
+  <div class="row"><div class="label">Proposal phase</div><div class="track"><div class="bar doc" style="left:7.4%;width:9.8%"></div><div class="today" style="left:7.8%"></div></div></div>
+  <div class="row"><div class="label">SRD report</div><div class="track"><div class="bar doc" style="left:22.6%;width:10%"></div></div></div>
+  <div class="row"><div class="label">SRD presentation</div><div class="track"><div class="bar doc" style="left:33%;width:5%"></div></div></div>
+  <div class="row"><div class="label">S1 Perception</div><div class="track"><div class="bar sprint" style="left:38%;width:5%"></div></div></div>
+  <div class="row"><div class="label">S2 Fall classifier</div><div class="track"><div class="bar sprint" style="left:43.3%;width:4.5%"></div></div></div>
+  <div class="row"><div class="label">S3 Engine + notify</div><div class="track"><div class="bar sprint" style="left:48%;width:4.7%"></div></div></div>
+  <div class="row"><div class="label">S4 Speech + agent</div><div class="track"><div class="bar sprint" style="left:53%;width:4.9%"></div></div></div>
+  <div class="row"><div class="label">S5 Emotion + fusion</div><div class="track"><div class="bar sprint" style="left:58.3%;width:5.2%"></div></div></div>
+  <div class="row"><div class="label">S6 Hardening</div><div class="track"><div class="bar sprint" style="left:63.9%;width:4.9%"></div></div></div>
+  <div class="row"><div class="label">M2 progress demo</div><div class="track"><div class="bar" style="left:69.2%;width:4.7%"></div></div></div>
+  <div class="row"><div class="label">S7 Feedback + stretch</div><div class="track"><div class="bar sprint" style="left:74.2%;width:4.7%"></div></div></div>
+  <div class="row"><div class="label">S8 Evaluation runs</div><div class="track"><div class="bar sprint" style="left:79.2%;width:4.8%"></div></div></div>
+  <div class="row"><div class="label">S9 User testing</div><div class="track"><div class="bar sprint" style="left:84.4%;width:4.8%"></div></div></div>
+  <div class="row"><div class="label">S10 Freeze + report</div><div class="track"><div class="bar doc" style="left:89.6%;width:2.2%"></div></div></div>
+  <div class="row"><div class="label">M3 report + demo</div><div class="track"><div class="bar doc" style="left:92.1%;width:2.2%"></div><div class="bar" style="left:94.7%;width:4.7%"></div></div></div>
+  <div class="row"><div class="label"><b>Milestones</b></div><div class="track"><div class="bar ms" style="left:17.2%"></div><div class="bar ms" style="left:32.6%"></div><div class="bar ms" style="left:69.2%"></div><div class="bar ms" style="left:94.4%"></div></div></div>
+  <p class="legend" style="margin:10px 0 0"><span><i style="background:var(--stretch)"></i>Document deliverable</span><span><i style="background:var(--ok)"></i>Development sprint</span><span><i style="background:var(--accent)"></i>Demo</span><span><i style="background:var(--bad)"></i>Hard deadline</span><span><i style="background:var(--bad);width:3px"></i>Today (22 Sep 2026)</span></p>
+</div>
+<p class="small">Figure 3.1 &mdash; Gantt chart, September 2026 to May 2027. Hard deadlines: proposal 18 Oct 2026;
+SRD 29 Nov 2026; progress demo 8&ndash;21 Mar 2027; final report 16 May 2027.</p>
+
+<h4>3.3.3 SWOT analysis</h4>
+<div class="callout"><b>New analysis.</b> Unlike the tables above, this SWOT does not exist in the project repository; it
+is written for this report. The threats are drawn from the project's existing risk register (R6, R9, R11, R13, R14) so
+that nothing here is invented.</div>
+<table>
+<caption>Table 3.3 &mdash; SWOT analysis.</caption>
+<tr><th style="width:50%">Strengths</th><th>Weaknesses</th></tr>
+<tr><td><ul style="margin:0"><li>A clear architectural wedge no surveyed product occupies: verify by conversation before escalating.</li><li>Safety-critical decisions sit in a pure, fully unit-tested state machine, not in a language model.</li><li>Privacy is enforced by design &mdash; raw frames never reach disk &mdash; not by policy.</li><li>Reproducibility is built in: pinned dependencies, fixed seeds, record-and-replay, CI from day one.</li><li>Pose-based features are cheap enough for the available GPU, already proven at 29.9 FPS.</li></ul></td>
+<td><ul style="margin:0"><li>Single developer; 15&ndash;20 hours per week is the hard ceiling on scope.</li><li>4&nbsp;GB VRAM rules out larger models and forces a cloud dependency for dialogue.</li><li>UR Fall provides only 30 fall sequences &mdash; small for a learned classifier, hence LOSO-CV rather than one held-out split.</li><li>Dialogue quality depends on a third-party API, its pricing and its availability.</li><li>No user-facing surface exists yet; dashboard and Telegram UI are late in the schedule.</li></ul></td></tr>
+<tr><th>Opportunities</th><th>Threats</th></tr>
+<tr><td><ul style="margin:0"><li>The verification ablation &mdash; false alarms removed versus true events lost &mdash; is a publishable, self-contained result.</li><li>The record-and-replay harness makes regression testing of a vision system genuinely cheap.</li><li>Stretch items (hazard description, routine-deviation baseline) reuse the existing verification path at almost no architectural cost.</li><li>PIXEL showcase selection (7&ndash;13 Jun 2027) if the demo lands.</li></ul></td>
+<td><ul style="margin:0"><li><b>R9</b> &mdash; supervisor assignment depends on SPTA bidding; it is the nearest-term risk and is outside the developer's control.</li><li><b>R14</b> &mdash; sprint slip through S4&ndash;S5, the two heaviest sprints; mitigated by a pretrained-FER fallback and a dashboard that may move into the S6 buffer.</li><li><b>R13</b> &mdash; prompt injection through speech-to-text; mitigated structurally by ADR-001 and tested by dedicated injection scenarios.</li><li><b>R11</b> &mdash; the emotion cue being read as a clinical claim; mitigated by restricting it to conversation triggering and stating the limitation.</li><li><b>R6</b> &mdash; ethics clearance for user testing may be required and takes time; must be confirmed with the supervisor before Sprint S9.</li><li>Dataset access: the Le2i dataset page was unreachable during research and its counts are unverified.</li></ul></td></tr>
+</table>
+
+<h3>3.4 Methodology: Scrum adapted to one developer</h3>
+<p>The project runs two-week sprints with a single ordered backlog and four ceremonies. The adaptation is that the
+developer holds the Product Owner role while an orchestrating agent session acts as Scrum Master and a coach agent
+enforces process before any work is delegated.</p>
+<h4>3.4.1 Definition of Ready</h4>
+<p>An item may enter a sprint only when all five hold: (1) it is one small vertical slice doable in one session;
+(2) its acceptance criteria are observable &mdash; a test, a table, a file, or a number with its unit; (3) every
+prerequisite is done or explicitly named as the blocker; (4) the owner is named; (5) it serves a user story, a
+requirement or a course deliverable. An item that fails any of these stays in the backlog with the blocker written
+down.</p>
+<h4>3.4.2 Definition of Done</h4>
+<p>Tests and lint green; if perception or fusion was touched, every recorded replay session still yields its expected
+events; if the agent was touched, escalation-decision accuracy on the scenario suite is unchanged or better and the
+injection cases still pass; any new decision or number is recorded with its rationale; five lines are written in the
+engineering journal; and what was verified &mdash; and what was <i>not</i> run &mdash; is reported explicitly.</p>
+<h4>3.4.3 Ceremonies</h4>
+<ul>
+  <li><b>Sprint planning</b> on the sprint's first Monday: set the Sprint Goal, pull ready items, human confirms.</li>
+  <li><b>Stand-up</b> at the start of every working session: done since last, doing now, blocked &mdash; then a process
+      check.</li>
+  <li><b>Sprint review</b> on the last Friday: each exit criterion demonstrated or not, with evidence.</li>
+  <li><b>Retrospective</b> immediately after: what to keep, what to change, one process action for the next sprint.</li>
+</ul>
+<p>Only one item may be in progress at a time. Work not on the backlog is not started; an agent that discovers work
+proposes a backlog item rather than doing it.</p>
+
+<h3>3.5 Requirements</h3>
+<h4>3.5.1 User stories</h4>
+<table>
+<caption>Table 3.4 &mdash; User stories.</caption>
+<tr><th style="width:50px">ID</th><th style="width:130px">As a&hellip;</th><th>I want&hellip;</th><th>So that&hellip;</th><th style="width:80px">Tag</th></tr>
+<tr><td>US-1</td><td>monitored person</td><td>Ally to ask if I'm OK when I fall</td><td>I get help even if I can't reach a phone</td><td><span class="badge mvp">MVP</span></td></tr>
+<tr><td>US-2</td><td>monitored person</td><td>a check-in after a long period of no movement</td><td>a collapse is noticed</td><td><span class="badge mvp">MVP</span></td></tr>
+<tr><td>US-3</td><td>monitored person</td><td>Ally to notice when I look sad and start a gentle conversation</td><td>I feel less alone</td><td><span class="badge mvp">MVP</span></td></tr>
+<tr><td>US-4</td><td>monitored person</td><td>to say &ldquo;I'm fine&rdquo; and have it stand down</td><td>false alarms don't bother my family</td><td><span class="badge mvp">MVP</span></td></tr>
+<tr><td>US-5</td><td>guardian</td><td>a notification with a snapshot and what Ally heard</td><td>I can judge urgency instantly</td><td><span class="badge mvp">MVP</span></td></tr>
+<tr><td>US-6</td><td>guardian</td><td>a dashboard with today's events and a mood trend</td><td>I can spot slow changes</td><td><span class="badge mvp">MVP</span></td></tr>
+<tr><td>US-7</td><td>guardian</td><td>hazard warnings (stove on, object on floor)</td><td>accidents are prevented</td><td><span class="badge stretch">STRETCH</span></td></tr>
+<tr><td>US-8</td><td>monitored person</td><td>Ally to learn my routine and notice deviations</td><td>unusual days get a check-in</td><td><span class="badge stretch">STRETCH</span></td></tr>
+<tr><td>US-9</td><td>monitored person</td><td>an on-screen avatar while Ally talks</td><td>interaction feels natural</td><td><span class="badge stretch">STRETCH</span></td></tr>
+</table>
+<div class="todo"><b>PLANNED &mdash; SRD sprint (2&ndash;29 Nov 2026).</b> Interviews with three to five carers, recorded as
+notes only. Until then these stories are the developer's synthesis from the literature and the product survey, not
+elicited requirements &mdash; and the report says so rather than implying fieldwork that has not happened.</div>
+
+<h4>3.5.2 Functional requirements</h4>
+<table>
+<caption>Table 3.5 &mdash; Functional requirements.</caption>
+<tr><th style="width:60px">ID</th><th>Requirement</th><th style="width:80px">Tag</th></tr>
+<tr><td>FR-1</td><td>Capture webcam frames continuously at &ge; 15 FPS (640&times;480) and run person and pose detection in real time.</td><td><span class="badge mvp">MVP</span></td></tr>
+<tr><td>FR-2</td><td>Classify a fall from a sliding window of pose keypoints; emit <code>SUSPECTED_FALL</code> with a confidence.</td><td><span class="badge mvp">MVP</span></td></tr>
+<tr><td>FR-3</td><td>Detect prolonged inactivity (no significant keypoint motion for a configurable T while a person is present); emit <code>INACTIVE</code>.</td><td><span class="badge mvp">MVP</span></td></tr>
+<tr><td>FR-4</td><td>Estimate a facial-expression class per face detection and maintain a smoothed mood estimate.</td><td><span class="badge mvp">MVP</span></td></tr>
+<tr><td>FR-5</td><td>On any event, verify: send one keyframe and a state summary to the VLM (structured JSON answer) and, in parallel, start a spoken check-in with a response timeout.</td><td><span class="badge mvp">MVP</span></td></tr>
+<tr><td>FR-6</td><td>Dialogue agent converses via speech (STT &rarr; LLM &rarr; TTS), holds short-term context, and may call <code>request_escalation</code>, <code>log_event</code>, <code>get_current_state</code>, <code>request_stand_down</code>. In <code>VERIFY</code> its only decision is to label the reply <code>fine</code> / <code>help</code> / <code>unclear</code>; the FSM makes the transition. (ADR-001)</td><td><span class="badge mvp">MVP</span></td></tr>
+<tr><td>FR-7</td><td>Escalate via Telegram with event type, timestamp, keyframe (optionally blurred) and transcript when verification confirms or the person is unresponsive.</td><td><span class="badge mvp">MVP</span></td></tr>
+<tr><td>FR-8</td><td>Persist events, transcripts and mood samples to local SQLite and expose them on the guardian dashboard.</td><td><span class="badge mvp">MVP</span></td></tr>
+<tr><td>FR-9</td><td>Proactively start a companionship conversation when mood is negative for more than N minutes, at most once per cooldown.</td><td><span class="badge mvp">MVP</span></td></tr>
+<tr><td>FR-10</td><td>Scene-hazard description from the VLM on a low-frequency schedule.</td><td><span class="badge stretch">STRETCH</span></td></tr>
+<tr><td>FR-11</td><td>Learn a per-hour activity baseline over 14 days; flag statistically unusual days.</td><td><span class="badge stretch">STRETCH</span></td></tr>
+<tr><td>FR-12</td><td>Animated, lip-synced avatar during speech.</td><td><span class="badge stretch">STRETCH</span></td></tr>
+<tr><td>FR-13</td><td>Voice-tone emotion channel fused with the facial channel.</td><td><span class="badge stretch">STRETCH</span></td></tr>
+</table>
+
+<h4>3.5.3 Non-functional requirements</h4>
+<table>
+<caption>Table 3.6 &mdash; Non-functional requirements. Every number below is a <span class="badge v2">TARGET</span>
+except where &sect;7.5 reports it as measured.</caption>
+<tr><th style="width:70px">ID</th><th>Requirement</th></tr>
+<tr><td>NFR-1<br><span class="small">Latency</span></td><td>Fall &rarr; <code>SUSPECTED_FALL</code> &le; 2 s (window plus inference). <code>VERIFY</code> entry &rarr; first spoken audio &le; 3 s (canned TTS, no model turn). Dialogue turn &rarr; first audio &le; 3 s at the effort setting chosen in Sprint S4. Confirmed &rarr; guardian notified &le; 60 s. (ADR-002)</td></tr>
+<tr><td>NFR-2<br><span class="small">Privacy</span></td><td>No continuous video storage; frames processed in memory; only event keyframes retained, for 7 days; only text and event keyframes leave the device. Consent from every recorded person.</td></tr>
+<tr><td>NFR-3<br><span class="small">Resilience</span></td><td>If the internet or API is down, perception and the fall and inactivity rules keep running; a scripted offline check-in and a queued notification retry replace the model. An unanswered check-in while offline triggers a local audible alarm.</td></tr>
+<tr><td>NFR-4<br><span class="small">Resources</span></td><td>RTX 2050 (4 GB) at &ge; 15 FPS with all MVP models loaded; total GPU under 3 GB. Pose and FER on GPU; faster-whisper int8 and Piper on CPU. The 10-second ring buffer at 480p is approximately 140 MB.</td></tr>
+<tr><td>NFR-5<br><span class="small">False alarms</span></td><td>Suspected events &le; 1 per hour of daily-activity footage; guardian-level false alerts &le; 1 per day. The second number decides whether a guardian keeps the system switched on. (ADR-003)</td></tr>
+<tr><td>NFR-6<br><span class="small">Cost</span></td><td>Cloud API spend &le; RM 100 per month during development, with a hard spend limit set in the provider console.</td></tr>
+<tr><td>NFR-7<br><span class="small">Reproducibility</span></td><td>One command to run the app and one per experiment; pinned dependencies; fixed seeds; a recorded session replays to identical events.</td></tr>
+</table>
+
+<h3>3.6 Technology deployed</h3>
+<table>
+<caption>Table 3.7 &mdash; Hardware and software specification.</caption>
+<tr><th style="width:170px">Layer</th><th>Technology</th><th>Note</th></tr>
+<tr><td>Hardware</td><td>Laptop with NVIDIA RTX 2050, 4 GB VRAM; USB webcam at 640&times;480; microphone and speaker</td><td>The 4 GB budget is the binding constraint on every model choice</td></tr>
+<tr><td>Runtime</td><td>Python 3.11 in a virtual environment</td><td>3.13 is installed on the machine but not used &mdash; CV/ML wheels lag</td></tr>
+<tr><td>Vision</td><td>OpenCV; Ultralytics YOLO-pose nano or MediaPipe Pose Landmarker; ONNX Runtime with the CUDA execution provider</td><td>Backend choice frozen in Sprint S1 against a measured benchmark</td></tr>
+<tr><td>Machine learning</td><td>PyTorch (CUDA), scikit-learn, LightGBM</td><td>Small models only</td></tr>
+<tr><td>Speech</td><td>faster-whisper on CPU int8; Piper TTS; sounddevice; Silero or WebRTC VAD</td><td>CPU placement keeps the GPU for vision</td></tr>
+<tr><td>Language model</td><td>Cloud LLM/VLM behind <code>ally/agent/llm_client.py</code></td><td>Exactly one module may import the provider SDK</td></tr>
+<tr><td>Backend</td><td>FastAPI, Uvicorn, SQLModel on SQLite, Jinja2 dashboard</td><td>Dashboard binds to the LAN interface only</td></tr>
+<tr><td>Notification</td><td>python-telegram-bot</td><td>Rejects every chat ID except the guardian's</td></tr>
+<tr><td>Tooling</td><td>pytest, ruff, pre-commit, Makefile with a PowerShell mirror, GitHub Actions</td><td>Pinned <code>requirements.txt</code>; fixed seeds</td></tr>
+</table>
+
+<h3>3.7 Conclusion</h3>
+<p>The requirements are stable and testable, the scope excludes as firmly as it includes, and the schedule places the two
+riskiest sprints &mdash; speech/agent and emotion/fusion &mdash; before a deliberate hardening buffer rather than against
+the deadline. The remaining gap in this chapter is empirical rather than structural: the user stories have not yet been
+checked against real carers.</p>
+</section>
+
+<section id="ch4">
+<h2><span class="num-h">4</span>System Design</h2>
+
+<h3>4.1 Introduction</h3>
+<p>This is the most complete chapter in the current draft, because design was done before code deliberately. The
+architecture, the module contracts, the state machine and the privacy boundary are settled and recorded as architecture
+decision records. What is missing &mdash; and is marked as missing &mdash; is everything downstream of a database and a
+screen that do not exist yet.</p>
+
+<h3>4.2 System architecture</h3>
+<p>Ally is a modular, event-driven pipeline. Perception runs locally on the laptop GPU; only compact text and one event
+keyframe cross the privacy boundary.</p>
+<pre>
+LOCAL DEVICE - raw video never leaves this boundary
+  USB webcam --&gt; capture (OpenCV, 640x480, &gt;=15 FPS)
+     |  KeypointFrame
+     v
+  perception (GPU, ONNX/PyTorch)
+     pose estimation (YOLO-pose nano | MediaPipe) --&gt; fall/inactivity temporal classifier
+     face detect --&gt; FER CNN --&gt; mood EMA
+     |  KeypointFrame (keypoints, bbox, face_valence, person_present)
+     v
+  fusion - state + event engine (pure FSM, cooldowns)   &lt;-- EscalationRequest / StandDownRequest --+
+     NORMAL -&gt; SUSPECTED_* -&gt; VERIFY -&gt; CONFIRMED | STOOD_DOWN | FALSE_ALARM ; COMPANION_CHAT      |
+     |  Event + PersonState                                                                        |
+     v                                                                                             |
+  agent - dialogue orchestrator (persona prompt, short-term memory, tools) ------------------------+
+     speech I/O: mic -&gt; VAD -&gt; STT (faster-whisper, CPU int8) ; TTS (Piper) -&gt; speaker
+     offline fallback: scripted check-in + keyword spotting + local alarm
+     |  Notification (created ONLY by the event engine)
+     v
+  notify - Telegram bot (alert + keyframe + transcript; guardian replies "ok")
+  storage - SQLite (events, transcripts, mood samples, keyframes 7-day TTL) ; FastAPI dashboard (LAN only)
+
+CLOUD (text + 1 keyframe per event only): LLM dialogue with tool use - VLM keyframe verification
+</pre>
+<p class="small">Figure 4.1 &mdash; System architecture and privacy boundary.</p>
+
+<h4>4.2.1 Runtime model</h4>
+<ul>
+  <li><code>main.py</code> starts workers connected by <b>bounded, drop-oldest queues</b>: capture &rarr; perception
+      &rarr; fusion &rarr; agent. Perception must hold &ge; 15 FPS, so a slow consumer drops frames rather than applying
+      back-pressure to capture. A monitoring system that stutters under load is worse than one that skips a frame.</li>
+  <li>Frames live in a <b>RAM ring buffer holding the last 10 seconds</b>, so a keyframe from just before the event can
+      be chosen. They are never written to disk. At 640&times;480 this is roughly 140 MB; at 1080p it would be roughly
+      930 MB, which is why the capture resolution is fixed rather than configurable.</li>
+  <li><b>GPU placement:</b> pose and FER on the RTX 2050; faster-whisper (int8) and Piper on CPU.</li>
+  <li><b><code>--replay &lt;session&gt;</code></b> replaces the webcam with a recording that contains keypoints, audio and
+      events &mdash; never raw frames. Everything from perception onward runs the same code path (ADR-004).</li>
+</ul>
+
+<h3>4.3 Module contracts</h3>
+<p>Modules import only <code>contracts</code> and their own package. Each is testable at its boundary with fixtures, and
+no module reaches across a boundary to a concrete class. The state-machine class has no I/O at all &mdash; no camera, no
+network, no clock; time is passed in.</p>
+<table>
+<caption>Table 4.1 &mdash; Module contracts at each boundary, as pydantic models in <code>ally/contracts.py</code>.</caption>
+<tr><th style="width:170px">Boundary</th><th style="width:150px">Type</th><th>Fields (minimum)</th></tr>
+<tr><td>perception &rarr; fusion</td><td><code>KeypointFrame</code></td><td><code>ts</code>, <code>keypoints[N,3]</code> (x, y, confidence), <code>bbox</code>, <code>face_valence</code>, <code>person_present</code></td></tr>
+<tr><td>fusion &rarr; agent</td><td><code>PersonState</code></td><td><code>posture</code>, <code>motion_energy</code>, <code>mood</code>, <code>presence</code>, <code>inactive_for_s</code></td></tr>
+<tr><td>fusion &rarr; agent</td><td><code>Event</code></td><td><code>type</code>, <code>confidence</code>, <code>keyframe_id</code>, <code>state</code>, <code>ts</code></td></tr>
+<tr><td>agent &rarr; fusion</td><td><code>EscalationRequest</code>, <code>StandDownRequest</code></td><td><code>reason</code>, <code>urgency</code> &mdash; <b>requests; the engine decides</b></td></tr>
+<tr><td>agent &rarr; fusion</td><td><code>ReplyLabel</code></td><td><code>label</code> (<code>fine</code> / <code>help</code> / <code>unclear</code>), <code>transcript</code> &mdash; structured output</td></tr>
+<tr><td>fusion &rarr; notify</td><td><code>Notification</code></td><td><code>event</code>, <code>keyframe_path</code>, <code>transcript</code>, <code>blur_face</code> &mdash; <b>only the event engine may create one</b></td></tr>
+<tr><td>llm_client &rarr; fusion</td><td><code>VerifyResult</code></td><td><code>person_on_floor</code>, <code>confidence</code>, <code>hazard</code>, <code>summary</code> &mdash; a second vote the engine weighs, never a decision</td></tr>
+</table>
+<p class="small"><code>EventType</code> includes <code>SUPPRESSED</code> for a <code>SUSPECTED_*</code> trigger that fails
+the three-second debounce. Enum string values are the wire format of the replay harness and of the database rows from
+Sprint S3 onward, and are therefore treated as append-only.</p>
+
+<h3>4.4 Event engine</h3>
+<p>The state machine is the safety-critical component and the reason the design is arranged the way it is. Every
+transition in the table below has a unit test.</p>
+
+<div class="card" style="overflow:auto">
+<svg viewBox="0 0 900 300" width="100%" height="300" role="img" aria-label="Event engine state diagram">
+  <defs><marker id="ar" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="currentColor"/></marker></defs>
+  <g fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#ar)" opacity="0.75">
+    <path d="M118,60 L212,60"/>
+    <path d="M330,60 L424,60"/>
+    <path d="M282,88 C282,140 190,140 130,90"/>
+    <path d="M500,88 L500,150 L318,150 L318,196"/>
+    <path d="M560,88 L640,150 L700,150"/>
+    <path d="M60,88 L60,230 L212,230"/>
+    <path d="M700,180 C560,250 200,250 70,95"/>
+    <path d="M318,252 C200,285 90,200 62,96"/>
+  </g>
+  <g font-size="13" text-anchor="middle">
+    <rect x="12" y="38" width="106" height="44" rx="8" fill="var(--ok-soft)" stroke="var(--ok)"/><text x="65" y="65" fill="var(--ink)">NORMAL</text>
+    <rect x="212" y="38" width="118" height="44" rx="8" fill="var(--warn-soft)" stroke="var(--warn)"/><text x="271" y="59" fill="var(--ink)">SUSPECTED_*</text><text x="271" y="74" fill="var(--muted)" font-size="10.5">3 s debounce</text>
+    <rect x="424" y="38" width="136" height="44" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="492" y="59" fill="var(--ink)">VERIFY</text><text x="492" y="74" fill="var(--muted)" font-size="10.5">speak + VLM, 2 prompts</text>
+    <rect x="700" y="150" width="150" height="46" rx="8" fill="var(--bad-soft)" stroke="var(--bad)"/><text x="775" y="171" fill="var(--ink)">CONFIRMED</text><text x="775" y="186" fill="var(--muted)" font-size="10.5">engine emits Notification</text>
+    <rect x="240" y="196" width="156" height="46" rx="8" fill="var(--ok-soft)" stroke="var(--ok)"/><text x="318" y="217" fill="var(--ink)">STOOD_DOWN</text><text x="318" y="232" fill="var(--muted)" font-size="10.5">/ FALSE_ALARM</text>
+    <rect x="212" y="208" width="0" height="0"/>
+    <rect x="12" y="208" width="150" height="44" rx="8" fill="var(--stretch-soft)" stroke="var(--stretch)"/><text x="87" y="235" fill="var(--ink)">COMPANION_CHAT</text>
+  </g>
+  <g font-size="10.5" fill="var(--muted)" text-anchor="middle">
+    <text x="165" y="52">trigger</text>
+    <text x="377" y="52">debounce ok</text>
+    <text x="205" y="132">suppressed</text>
+    <text x="620" y="120">help / unclear / silence</text>
+    <text x="400" y="163">fine + VLM negative</text>
+    <text x="430" y="272">ack or 10 min, cooldown</text>
+  </g>
+</svg>
+<p class="small" style="margin:0">Figure 4.2 &mdash; Event-engine state diagram. The label on a reply is produced by the
+language model; every transition shown is computed by the state machine.</p>
+</div>
+
+<table>
+<caption>Table 4.2 &mdash; Event-engine state transition table. Each row is a unit test in
+<code>tests/unit/test_event_engine.py</code>.</caption>
+<tr><th style="width:130px">State</th><th style="width:130px">Entry</th><th>Action</th><th>Exit</th></tr>
+<tr><td><code>NORMAL</code></td><td>default</td><td>run perception; sample mood every 5 s; update the inactivity timer</td><td>fall score &ge; &tau;<sub>fall</sub> &rarr; <code>SUSPECTED_FALL</code>; inactivity &ge; T (default 30 min, person present) &rarr; <code>SUSPECTED_INACTIVE</code>; mood negative beyond N min and cooldown elapsed &rarr; <code>COMPANION_CHAT</code></td></tr>
+<tr><td><code>SUSPECTED_*</code></td><td>trigger fired</td><td>freeze keyframe; 3 s debounce (posture stays &ldquo;on floor&rdquo; / no motion)</td><td>debounce passes &rarr; <code>VERIFY</code>; otherwise &rarr; <code>NORMAL</code>, logged as <code>SUPPRESSED</code></td></tr>
+<tr><td><code>VERIFY</code></td><td>debounce passed</td><td>in parallel: (a) VLM keyframe query returning structured JSON; (b) canned TTS &ldquo;&hellip;are you all right? Please say something.&rdquo;; listen 20 s, up to 2 prompts; the model labels each reply <code>fine</code> / <code>help</code> / <code>unclear</code></td><td><code>fine</code> <b>and</b> VLM does not confirm a fall &rarr; <code>STOOD_DOWN</code>. <code>help</code> or <code>unclear</code>, no reply after 2 prompts, or VLM and posture agreeing on a fall &rarr; <code>CONFIRMED</code>. <b>Computed by the FSM.</b></td></tr>
+<tr><td><code>CONFIRMED</code></td><td>verification positive or unanswered</td><td>engine creates the <code>Notification</code>; keep talking to reassure; retry until the guardian acknowledges; if offline, local audible alarm plus queued retry</td><td>guardian acknowledges, or 10 min &rarr; <code>NORMAL</code> with cooldown</td></tr>
+<tr><td><code>STOOD_DOWN</code> / <code>FALSE_ALARM</code></td><td>person is fine / VLM negative</td><td>log the outcome (used to tune &tau;<sub>fall</sub>); optional light chat</td><td>&rarr; <code>NORMAL</code>, 5 min cooldown</td></tr>
+<tr><td><code>COMPANION_CHAT</code></td><td>negative mood or scheduled check-in</td><td>conversation: open question, active listening, suggest an activity; ends politely on silence</td><td>&rarr; <code>NORMAL</code>; log mood before and after</td></tr>
+</table>
+
+<h3>4.5 Privacy boundary</h3>
+<table>
+<caption>Table 4.3 &mdash; What crosses the device boundary, exhaustively.</caption>
+<tr><th style="width:40%">Leaves the device</th><th>Never leaves the device</th></tr>
+<tr><td><ul style="margin:0"><li>A JSON state summary and conversation text, to the language model API</li><li>One JPEG keyframe per event, to the vision model and to Telegram (face blur on by default for Telegram)</li><li>Nothing else</li></ul></td>
+<td><ul style="margin:0"><li>Raw video &mdash; never written to disk, never uploaded</li><li>Continuous audio &mdash; speech-to-text runs locally</li><li>Keypoint streams and recorded sessions</li><li>The event database and the dashboard, which bind to the LAN interface only</li></ul></td></tr>
+</table>
+<p>The environment variable <code>ALLY_TEXT_ONLY_VERIFY=true</code> disables image upload entirely, and that kill switch
+must be honoured on every verification call path &mdash; a line item on the security checklist in &sect;8. The dashboard
+uses token authentication or HTTPS, not basic authentication over plain HTTP. The Telegram handler rejects every chat ID
+except the guardian's.</p>
+
+<h3>4.6 Database design</h3>
+<div class="todo"><b>PLANNED &mdash; Sprint S3 (11&ndash;24 Jan 2027); diagram drafted for the SRD, Nov 2026.</b> The
+entity-relationship diagram (Figure 4.3) and the UML class diagram (Figure 4.4) do not exist yet. The tables are already
+determined by the contracts above: <code>event</code> (type, timestamp, confidence, state summary, outcome),
+<code>transcript</code> (event id, turn, speaker, text), <code>mood_sample</code> (timestamp, valence),
+<code>keyframe</code> (event id, path, created-at, for the 7-day retention job), and <code>notification</code>
+(event id, channel, sent-at, acknowledged-at). Constraint worth recording now: a <code>keyframe</code> row and its file
+are deleted together by the retention job, and that job is tested with a fake clock.</div>
+
+<h3>4.7 Interface design</h3>
+<div class="todo"><b>PLANNED &mdash; designs in Sprint S5, implementation S5&ndash;S6 with the S6 buffer as the fallback.</b>
+No screen exists yet and no design has been drawn. Three surfaces are needed, and by process rule each needs a design
+before any code is written: <b>(a) the guardian dashboard</b> &mdash; today's events with keyframe thumbnails, a mood
+trend chart, a delete control per keyframe, and the system-status indicator; <b>(b) the Telegram message format</b>
+&mdash; event type, time, keyframe, transcript excerpt and an acknowledge button; <b>(c) the monitored person's cues</b>
+&mdash; a visible indicator when Ally is listening or speaking, the spoken first-run explanation, and a physical
+pause-monitoring control the state machine honours. Surface (c) is a requirement of the transparency commitments in
+&sect;8, not a nicety.</div>
+
+<h3>4.8 Input and output design</h3>
+<table>
+<caption>Table 4.4 &mdash; Inputs and outputs per subsystem. This table is design intent; the S1&ndash;S5 implementation
+fills in the realised formats.</caption>
+<tr><th style="width:150px">Subsystem</th><th>Input</th><th>Output</th></tr>
+<tr><td>Capture</td><td>USB webcam, 640&times;480 frames</td><td>Frames into a bounded queue and the 10 s ring buffer</td></tr>
+<tr><td>Pose / perception</td><td>Frame</td><td><code>KeypointFrame</code>: keypoints with confidences, bbox, face valence, presence flag</td></tr>
+<tr><td>Fall classifier</td><td>Sliding window of ~22 frames (1.5 s at 15 FPS) of features</td><td>Fall score in [0,1], compared against &tau;<sub>fall</sub></td></tr>
+<tr><td>Event engine</td><td><code>KeypointFrame</code>, <code>ReplyLabel</code>, <code>VerifyResult</code>, requests from the agent, injected time</td><td><code>Event</code>, <code>PersonState</code>, and (only here) <code>Notification</code></td></tr>
+<tr><td>Dialogue agent</td><td>State JSON, transcript history, persona prompt</td><td>Spoken text (streamed so speech starts on the first sentence); tool calls that are requests</td></tr>
+<tr><td>Verification</td><td>One JPEG keyframe plus a structured prompt</td><td><code>VerifyResult</code> JSON: person on floor, confidence, hazard, summary</td></tr>
+<tr><td>Notify</td><td><code>Notification</code></td><td>Telegram message with keyframe and transcript; guardian acknowledgement returns</td></tr>
+<tr><td>Storage / dashboard</td><td>Events, transcripts, mood samples</td><td>SQLite rows; LAN-only HTML dashboard; keyframe deletion control</td></tr>
+</table>
+
+<h3>4.9 Conclusion</h3>
+<p>The design's load-bearing idea is a separation of concerns with a safety argument attached: perception produces
+evidence, a model produces a label, and a testable state machine with no I/O produces every decision. That separation is
+what makes the escalation path auditable, and it is what the testing chapter must demonstrate transition by
+transition.</p>
+</section>
+
+<section id="ch5">
+<h2><span class="num-h">5</span>Intelligent Computing Methods</h2>
+<div class="callout"><b>Why this chapter exists.</b> The CAT304 reference report has no equivalent chapter, because it is
+a sustainability project. CAT405 grading criteria 2&ndash;4 require each intelligent-computing method to be
+<b>named, justified against alternatives, constructed step by step, and demonstrated with results</b>. This chapter
+carries the first three; the fourth is delivered by Chapter 7, whose result tables it points to.</div>
+
+<h3>5.1 Method table</h3>
+<table>
+<caption>Table 5.1 &mdash; Methods, justification, dataset and metric. Targets are the developer's engineering goals and
+are re-baselined after Sprint S2.</caption>
+<tr><th style="width:120px">Subsystem</th><th>Method</th><th>Why this, not the alternative</th><th style="width:150px">Dataset</th><th style="width:170px">Metric &amp; target</th></tr>
+<tr><td><b>Fall detection</b><br><span class="badge mvp">MVP</span></td><td>2-D pose &rarr; kinematic features over a 1&ndash;2 s window &rarr; temporal classifier (GRU/LSTM), with gradient-boosted trees and a rule detector as baselines</td><td>Pose features are compact, privacy-friendly and cheap on 4 GB. 3-D CNN video models need far more data and compute; wearables need compliance; a VLM per frame is too slow and costly &mdash; so the VLM becomes the second-stage verifier</td><td>UR Fall (70 sequences: 30 falls, 40 ADL) [10]; Le2i [11]; self-recorded ADL footage</td><td><b>LOSO-CV</b> with 95 % CI (30 falls is too few for a single held-out split); recall &ge; 0.90 mean over folds; specificity, F1; suspected FA &le; 1/h; latency &le; 2 s</td></tr>
+<tr><td><b>Inactivity / presence</b><br><span class="badge mvp">MVP</span></td><td>Keypoint motion energy plus presence detection with hysteresis; configurable T (default 30 min)</td><td>Simple, explainable, reliable &mdash; and auditable by a guardian, which a learned model would not be</td><td>Self-recorded sessions</td><td>Detection within T &plusmn; 30 s; zero misses in 10 staged trials</td></tr>
+<tr><td><b>Emotion cue</b><br><span class="badge mvp">MVP</span></td><td>Face detection &rarr; lightweight CNN (MobileNetV3 / ResNet-18) fine-tuned on FER-2013 (7 classes) &rarr; EMA over 5&ndash;10 s &rarr; valence</td><td>FER on frontal faces is mature and cheap; multimodal affect models are heavy. Emotion is a <b>soft trigger for conversation only</b>, never an alert on its own</td><td>FER-2013 [12]; RAF-DB optional [13]</td><td>Accuracy and macro-F1 on the FER-2013 test split against a re-run baseline; live agreement with self-report on 30 clips</td></tr>
+<tr><td><b>Event verification</b><br><span class="badge mvp">MVP</span></td><td>Cloud VLM, one keyframe and a structured prompt (&ldquo;Is the person lying on the floor? Any hazard?&rdquo;) returning <b>structured JSON</b> used as a second vote</td><td>Decouples rare expensive reasoning from continuous cheap perception, and gives the guardian an interpretable sentence rather than a score</td><td>100 curated keyframes, frozen; second rater on 30</td><td>Agreement with human labels &ge; 0.90; inter-rater agreement; median latency; cost per event</td></tr>
+<tr><td><b>Dialogue agent</b><br><span class="badge mvp">MVP</span></td><td>Cloud LLM, care-companion persona, short-term memory (last N turns plus state JSON), tools <code>request_escalation</code>, <code>log_event</code>, <code>get_current_state</code>, <code>request_stand_down</code> &mdash; <b>all arbitrated by the event engine</b>; strict schemas; reply classification via structured outputs; proactive turns initiated by the engine (the ContextAgent pattern [9])</td><td>Rule or intent bots cannot do open-ended reassurance; a local small model on 4 GB is noticeably weaker &mdash; a deliberate trade with a scripted offline fallback</td><td>30 scripted scenarios including injection cases</td><td>Rubric 1&ndash;5 (appropriateness, safety, escalation decision, brevity); escalation-decision accuracy &ge; 0.90, each scenario run 5&times; with the model ID pinned; &le; 3 s to first audio</td></tr>
+<tr><td><b>Speech</b><br><span class="badge mvp">MVP</span></td><td>STT: faster-whisper (CPU int8) [14]. TTS: Piper [15] or cloud TTS</td><td>Local audio stays on device and keeps the offline fallback honest</td><td>&mdash;</td><td>Word error rate on 50 short utterances (Malaysian-English accents); TTS latency to first audio</td></tr>
+<tr><td><b>Hazard description</b><br><span class="badge stretch">STRETCH</span></td><td>Same VLM every ~10 min with a hazard checklist</td><td>Reuses the verification path; no new models</td><td>Staged scenes</td><td>Precision of hazard mentions on 50 scenes</td></tr>
+<tr><td><b>Routine baseline</b><br><span class="badge stretch">STRETCH</span></td><td>Per-hour activity histogram over 14 days; z-score anomaly</td><td>Statistical and transparent</td><td>Own logs</td><td>Precision of &ldquo;unusual day&rdquo; flags on injected anomalies</td></tr>
+</table>
+
+<h3>5.2 Construction &mdash; fall detector</h3>
+<ol>
+  <li><b>Data.</b> Download UR Fall and Le2i; extract RGB frames; run the pose model on every frame; store per-frame
+      keypoints (x, y, confidence) as NumPy arrays. A window is labelled &ldquo;fall&rdquo; if it overlaps the annotated
+      fall interval. <span class="badge v1">DONE &mdash; see &sect;6.2.4</span></li>
+  <li><b>Features.</b> Per frame: torso angle to vertical (shoulder centre to hip centre), bounding-box aspect ratio,
+      normalised hip height, vertical velocity and acceleration of the hip centre by finite differences, and mean
+      keypoint confidence. Per window (1.5 s, about 22 frames at 15 FPS): the raw sequence for the GRU, and
+      minimum / maximum / mean / standard deviation for the tree baseline.
+      <span class="badge v1">DONE &mdash; implemented and unit-tested</span></li>
+  <li><b>Baselines.</b> (a) Rule: torso angle above 60&deg; and vertical velocity above <code>v_thr</code>, followed by
+      low hip height sustained for 2 s. (b) Gradient-boosted trees on the window statistics.
+      <span class="badge v2">(a) implemented, not yet run on the dataset; (b) not started</span></li>
+  <li><b>Temporal model.</b> A one-layer GRU (hidden size 64) with a sigmoid output and class-weighted binary
+      cross-entropy. <b>Leave-one-subject-out:</b> train on all subjects but one, test on the held out subject, rotate;
+      early stopping on a validation fold's F1; report the mean and confidence interval across folds.</li>
+  <li><b>Threshold.</b> Choose &tau;<sub>fall</sub> on the validation folds for recall &ge; 0.90; report specificity and
+      the suspected-event false-alarm rate per hour on self-recorded footage, then the guardian-level rate per day after
+      the verifier.</li>
+  <li><b>Ablation.</b> Rule versus trees versus GRU; and with versus without VLM second-stage verification. <b>How many
+      false alarms the verifier removes, and how many true events it costs, is this project's central improvement
+      claim.</b></li>
+  <li><b>Real time.</b> Export to ONNX; run in a worker thread fed by a bounded drop-oldest queue; profile FPS and VRAM
+      on the RTX 2050; record a session and confirm that replay yields identical events.</li>
+</ol>
+<div class="callout warn"><b>Honest status of step 3.</b> The rule detector exists and is unit-tested against synthetic
+sequences, but it has <b>never been run against the extracted UR Fall keypoints</b>. Two thresholds
+(<code>v_thr</code> and <code>hip_height_max</code>) are deliberately left required-not-defaulted in the code so that no
+value can slip in unnoticed, and the developer &mdash; who owns every number &mdash; has not yet set them. The subject
+map needed for leave-one-subject-out is also unfilled, because UR Fall does not publish one and it must be built by hand
+rather than guessed.</div>
+
+<h3>5.3 Construction &mdash; emotion cue</h3>
+<ol>
+  <li>Face detection and alignment; crop to 48&times;48 greyscale (the FER-2013 format) or 112&times;112 RGB.</li>
+  <li>Fine-tune a small backbone on the FER-2013 training split; evaluate on its test split; produce a confusion matrix.
+      <i>Fallback if Sprint S5 slips: pretrained weights without fine-tuning for the March demo.</i></li>
+  <li>Map the 7 classes to a valence in [&minus;1, 1]; smooth with an exponential moving average; expose the mood to the
+      event engine.</li>
+  <li>State the limitation in the report: <b>expression is not emotion</b>. The cue triggers a gentle conversation and
+      nothing else.</li>
+</ol>
+
+<h3>5.4 Construction &mdash; dialogue agent</h3>
+<ol>
+  <li>A persona system prompt: calm, brief, never gives medical advice, offers to contact the guardian when in doubt.
+      Kept byte-stable so it can be prompt-cached.</li>
+  <li>Tools as JSON schemas with strict validation; each is a Python function whose side effect is a <i>request</i> to
+      the event engine, never a direct notification.</li>
+  <li>A reply classifier returning <code>fine</code>, <code>help</code> or <code>unclear</code> via structured outputs;
+      the state machine consumes the label.</li>
+  <li>Wire the loop: state JSON and transcript &rarr; model &rarr; text and/or tool call &rarr; execute &rarr; TTS,
+      streamed so that speech begins on the first sentence. Choose the dialogue-route effort setting by <i>measuring</i>
+      first-audio latency against NFR-1, and record the chosen model ID and effort in configuration.</li>
+  <li>A 30-scenario harness: fall and responsive, fall and silent, false alarm, sad mood, request for help, off-topic,
+      and <b>&ldquo;don't call anyone&rdquo; plus television-audio injection</b>. The harness auto-checks the state
+      machine's decision; two raters score the wording; each scenario runs five times.</li>
+  <li>An offline fallback: a scripted state machine with pre-recorded prompts and keyword spotting; unanswered leads to
+      a local audible alarm and a queued retry.</li>
+</ol>
+
+<h3>5.5 Cloud model budget</h3>
+<p>A provider-independent estimate: 20 conversations per day at roughly 2&nbsp;000 input and 300 output tokens, plus 50
+verifications per day at roughly 1&nbsp;500 input (including the image) and 100 output tokens, gives approximately
+3.5 M input and 0.33 M output tokens per month. At the Opus-tier reference pricing recorded in the plan (roughly
+US$5 and US$25 per million input and output tokens [18]) that is around US$25 per month; running verification on a
+Sonnet-tier model roughly halves it, and prompt-caching the stable persona reduces it further. The NFR-6 budget of
+RM 100 per month is comfortable, and a hard spend limit is set in the provider console.
+<span class="badge v2">SECONDARY &mdash; re-check live pricing and pin the exact model ID at SRD time</span></p>
+</section>
+
+<section id="ch6">
+<h2><span class="num-h">6</span>Implementation</h2>
+
+<h3>6.1 Introduction</h3>
+<p>This chapter will become the longest in the finished report and is currently the shortest. Five days of
+implementation exist. The table below states exactly what is real, measured in lines of code and passing tests, so that
+nothing here can be mistaken for more than it is.</p>
+
+<h3>6.2 Implementation status</h3>
+<table>
+<caption>Table 6.1 &mdash; Implementation status by module. Line counts and test counts measured on 22 September 2026 at
+commit <code>0fd5bf7</code>. <span class="badge v1">MEASURED</span></caption>
+<tr><th style="width:230px">Module</th><th style="width:70px">Lines</th><th style="width:110px">Status</th><th>Note</th></tr>
+<tr><td><code>ally/contracts.py</code></td><td>184</td><td><span class="badge v1">Done</span></td><td>Every boundary type in Table 4.1, as pydantic models. 93 lines of tests.</td></tr>
+<tr><td><code>ally/perception/fall_features.py</code></td><td>278</td><td><span class="badge v1">Done</span></td><td>&sect;5.2 step 2 features, window statistics and an online extractor. 340 lines of tests.</td></tr>
+<tr><td><code>ally/perception/fall_model.py</code></td><td>119</td><td><span class="badge v1">Done</span></td><td><code>RuleFallDetector</code>, &sect;5.2 step 3a. 205 lines of tests. <b>Not yet run on real keypoints.</b></td></tr>
+<tr><td><code>ally/config.py</code></td><td>80</td><td><span class="badge v1">Done</span></td><td>Pydantic settings; only documented numbers; keys from <code>.env</code>.</td></tr>
+<tr><td><code>ally/main.py</code></td><td>37</td><td><span class="badge v2">Skeleton</span></td><td>Worker/queue entry point outline; does not yet start a real pipeline.</td></tr>
+<tr><td><code>ally/fusion/event_engine.py</code></td><td>6</td><td><span class="badge v4">Stub</span></td><td><b>The safety-critical component is not written.</b> Sprint S3.</td></tr>
+<tr><td><code>perception/</code>: <code>camera</code>, <code>pose</code>, <code>presence</code>, <code>face_emotion</code></td><td>4&ndash;5 each</td><td><span class="badge v4">Stub</span></td><td>Sprint S1 (camera, pose, presence); S5 (FER).</td></tr>
+<tr><td><code>agent/</code>: <code>dialogue</code>, <code>tools</code>, <code>llm_client</code>, <code>offline_fallback</code></td><td>4&ndash;7 each</td><td><span class="badge v4">Stub</span></td><td>Sprint S4. <code>llm_client</code> needs its interface decision recorded first.</td></tr>
+<tr><td><code>speech/</code>: <code>vad</code>, <code>stt</code>, <code>tts</code></td><td>4 each</td><td><span class="badge v4">Stub</span></td><td>Sprint S4.</td></tr>
+<tr><td><code>storage/</code>, <code>notify/</code>, <code>api/</code></td><td>4&ndash;5 each</td><td><span class="badge v4">Stub</span></td><td>Sprint S3 (storage, notify); S5&ndash;S6 (dashboard).</td></tr>
+<tr><td><code>scripts/prepare_urfall.py</code></td><td>202</td><td><span class="badge v1">Done</span></td><td>Download, layout and labels; verified end-to-end on one sequence (160 frames, 160 label rows).</td></tr>
+<tr><td><code>scripts/extract_keypoints.py</code></td><td>164</td><td><span class="badge v1">Done</span></td><td>Reads PNG sequences; run over all 70 UR Fall sequences (&sect;6.2.4).</td></tr>
+<tr><td><code>scripts/benchmark_fps.py</code></td><td>155</td><td><span class="badge v1">Done</span></td><td>Produced the pose benchmark in &sect;7.5.</td></tr>
+<tr><td><code>scripts/urfall_detection_rate.py</code></td><td>64</td><td><span class="badge v1">Done</span></td><td>Produced the person-detection table in &sect;6.2.4.</td></tr>
+<tr><td><code>scripts/</code>: <code>train_fall</code>, <code>eval_fall</code>, <code>train_fer</code>, <code>eval_fer</code>, <code>run_scenarios</code>, <code>record_session</code></td><td>19&ndash;20 each</td><td><span class="badge v4">Stub</span></td><td>Argument-parsing shells only. S2, S4, S5.</td></tr>
+</table>
+<p><b>Totals.</b> 4 modules of substance out of roughly 30 files; 2&nbsp;408 lines across <code>ally/</code>,
+<code>scripts/</code> and <code>tests/</code>, of which 836 are tests.
+<span class="badge v1">MEASURED &middot; 22 Sep 2026</span></p>
+
+<h4>6.2.1 Engineering infrastructure</h4>
+<p>Rather than starting with features, Sprint 0 built the apparatus that makes the later sprints verifiable: the package
+tree matching the architecture, typed contracts with tests, configuration carrying only documented numbers, a Makefile
+with a PowerShell mirror (GNU make is absent on the development machine, so the mirror is the one that is actually
+exercised), tiered and pinned requirements, a pre-commit hook, and a continuous-integration workflow.
+<b>Continuous integration has run 15 times</b>; runs 7 through 15 succeeded, and run 15 corresponds to the current head
+commit. <span class="badge v1">MEASURED &middot; verified against the GitHub API</span></p>
+
+<h4>6.2.2 Fall features</h4>
+<p>The feature extractor implements &sect;5.2 step 2 with both a batch and an online path, so the same code serves
+offline training and the real-time pipeline. Feature conventions &mdash; which keypoints define the torso vector, how
+hip height is normalised, how finite differences handle missing frames &mdash; are recorded as decisions rather than
+left implicit in the code, because they are the sort of detail that silently invalidates a comparison between the
+baseline and the learned model if it changes between them.</p>
+
+<h4>6.2.3 Rule fall detector</h4>
+<p>The rule baseline is implemented with its two thresholds <b>required rather than defaulted</b>. This is deliberate:
+a default would be a number nobody chose, and every number in this project belongs to the developer. The consequence is
+that the detector cannot be run until those two values are set, which is why &sect;7.5 has no fall numbers in it.</p>
+
+<h4>6.2.4 Dataset preparation</h4>
+<p>UR Fall was downloaded, laid out and labelled, and pose was extracted across the whole dataset.</p>
+<table>
+<caption>Table 6.2 &mdash; UR Fall keypoint extraction. <span class="badge v1">MEASURED &middot; 22 Sep 2026</span></caption>
+<tr><th>Quantity</th><th style="width:140px">Value</th><th>Interpretation</th></tr>
+<tr><td>Sequences processed</td><td>70 / 70</td><td>Complete coverage: 30 falls, 40 activities of daily living</td></tr>
+<tr><td>Frames processed</td><td>11&nbsp;936</td><td>Extraction ran at roughly 22 frames per second</td></tr>
+<tr><td>Person detected, not-lying frames</td><td>97.0 %</td><td>Normal postures are found reliably</td></tr>
+<tr><td>Person detected, falling frames</td><td>95.3 %</td><td>The transition itself is detected reliably</td></tr>
+<tr><td><b>Person detected, lying frames</b></td><td><b>58.5 %</b></td><td>Split into 79.1 % for floor-lying on fall sequences and 45.9 % for bed or couch lying on ADL sequences</td></tr>
+<tr><td>Frames without annotation</td><td>392</td><td>Start-of-sequence runs; PNG identifiers verified dense; excluded from training</td></tr>
+</table>
+<div class="callout warn"><b>The finding that matters, and what it does not yet mean.</b> The detector finds a person in
+only 58.5 % of lying frames &mdash; precisely the posture that matters most for fall detection. This is a
+<i>person-detection</i> rate at the configured confidence threshold, not a fall-detection rate, and it is why the choice
+of pose backend and detection confidence is an open decision rather than a default. Two options are on the table: lower
+the confidence threshold on the current backend, or benchmark MediaPipe as an alternative. Only one has been measured so
+far, so the decision is not yet ready to be made, and the report will not pretend otherwise.</div>
+
+<h3>6.3 System integration</h3>
+<div class="todo"><b>PLANNED &mdash; incremental, Sprints S1&ndash;S6; hardened in S6 (22 Feb &ndash; 7 Mar 2027).</b> No
+integration exists: there is no running pipeline, because the workers, the state machine and the agent are stubs. The
+integration sequence is fixed by the sprint plan &mdash; perception workers over bounded queues (S1), the classifier
+into that pipeline (S2), the state machine plus storage plus Telegram (S3), speech and the agent into
+<code>VERIFY</code> (S4), emotion and the dashboard (S5), then a four-hour soak, a resilience test with the network
+pulled mid-event, an adversarial review and a security review (S6).</div>
+
+<h3>6.4 Conclusion</h3>
+<p>What five days produced is a verified development apparatus, a measured pose pipeline, a complete feature layer with
+its baseline detector, and a fully prepared dataset with a finding that has already changed a design question. What it
+has not produced is a system: nothing yet runs end to end, and the component the whole safety argument rests on is a
+six-line stub.</p>
+</section>
+
+<section id="ch7">
+<h2><span class="num-h">7</span>Testing and Evaluation</h2>
+
+<h3>7.1 Introduction</h3>
+<p>The test plan below is complete and the harness contracts are fixed. The result tables in &sect;7.4 are present as
+empty shells with their target column filled, because presenting the shape of the evidence now is what keeps the
+evaluation honest later: the tables are defined before the numbers that will fill them are known.</p>
+
+<h3>7.2 Levels of testing</h3>
+<table>
+<caption>Table 7.1 &mdash; Levels of testing.</caption>
+<tr><th style="width:120px">Level</th><th>What</th><th style="width:110px">When</th><th style="width:200px">Pass criteria</th></tr>
+<tr><td>Unit</td><td>Every FSM transition, feature functions, tool handlers, the retention job</td><td>Every sprint; CI on push</td><td>All green; every transition covered</td></tr>
+<tr><td><b>Replay</b></td><td>Recorded sessions (falls, look-alikes, ordinary activity) through perception &rarr; fusion &rarr; agent with the webcam replaced by the recording; the expected event sequence is asserted. <b>This is the project's self-verification loop after every change.</b></td><td>Every sprint from S1; CI</td><td>Every session yields its expected events</td></tr>
+<tr><td>Model / dataset</td><td>Fall classifier under LOSO on UR Fall (+ Le2i); FER on the FER-2013 test split; ablations</td><td>S2, S5, S8</td><td>Recall &ge; 0.90 mean over folds with CI; fixed seeds; reproducible</td></tr>
+<tr><td>VLM verification</td><td>100 labelled keyframes, frozen; a second rater on 30; agreement, latency, cost</td><td>S3, S8</td><td>Agreement &ge; 0.90; inter-rater agreement reported</td></tr>
+<tr><td>Dialogue scenarios</td><td>30 scripted situations including injection cases, each run 5&times; with the model ID pinned; the FSM decision auto-checked; 2 raters score wording</td><td>S4, S8</td><td>Escalation-decision accuracy &ge; 0.90; mean rubric &ge; 4/5</td></tr>
+<tr><td>Integration / latency</td><td>All four NFR-1 timings; FPS and VRAM under full load; a 4-hour soak</td><td>S6, S8</td><td>NFR-1 and NFR-4 met; no crash</td></tr>
+<tr><td>Staged live trials</td><td>10 staged falls on a mattress by consenting adults; 10 look-alikes (lying on a sofa, picking objects up, sitting on the floor); 2 hours of ordinary activity</td><td>S8&ndash;S9</td><td>&ge; 9/10 falls caught; suspected FA &le; 1/h; guardian-level FA &le; 1/day</td></tr>
+<tr><td>Usability</td><td>3&ndash;5 volunteers play the monitored person and the guardian; SUS-style questionnaire and interview</td><td>S9</td><td>Mean &ge; 4/5; issues logged</td></tr>
+<tr><td>Resilience</td><td>Pull the network mid-event; kill the API key; check the fallback, the local alarm and retry on reconnect</td><td>S6</td><td>Offline check-in speaks; alarm sounds if unanswered; notification delivered on reconnect</td></tr>
+</table>
+
+<h3>7.3 Test harness contracts</h3>
+<ul>
+  <li><code>tests/replay/&lt;session&gt;/expected_events.json</code> &mdash; an ordered list of
+      <code>(type, t_min, t_max)</code>; the test asserts that the replayed engine emits exactly these within
+      tolerance.</li>
+  <li><code>scripts/run_scenarios.py</code> &mdash; reads scenario files (state, scripted utterances, expected FSM
+      decision), drives the agent through a fake speech layer, and reports decision accuracy and a latency
+      distribution.</li>
+  <li>Experiments write to <code>results/&lt;experiment&gt;/&lt;date&gt;/</code> with the seed, the model ID, the git
+      SHA and a CSV of metrics &mdash; so that every number in the finished report can be traced to the run that
+      produced it.</li>
+</ul>
+<div class="callout bad"><b>A gap in the current test suite, stated rather than glossed.</b> The replay test exists but
+<b>skips</b>, because no session has been recorded yet. The Definition of Done requires that replay still passes after
+any change to perception or fusion &mdash; but a skipping test asserts nothing, so that gate is presently vacuous. It
+becomes real when the first session is recorded in Sprint S1, and until then the project's headline test count should be
+read with that caveat.</div>
+
+<h3>7.4 Result tables</h3>
+<p>Six tables carry this report's empirical claims. All six are empty. Each states the sprint that fills it.</p>
+
+<table>
+<caption>Table 7.2 (Result Table 1) &mdash; Fall detection: rule vs trees vs GRU. <b>Fills in Sprint S2, final in S8.</b></caption>
+<tr><th>Model</th><th>Recall (mean &plusmn; 95 % CI)</th><th>Specificity</th><th>F1</th><th>Suspected FA / h</th><th>Latency (s)</th></tr>
+<tr><td>Rule baseline</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>Gradient-boosted trees</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>GRU</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td><b>Target</b></td><td><b>&ge; 0.90</b></td><td>report</td><td>report</td><td><b>&le; 1</b></td><td><b>&le; 2</b></td></tr>
+</table>
+
+<table>
+<caption>Table 7.3 (Result Table 2) &mdash; Effect of VLM verification. <b>This is the project's central improvement
+claim. Fills in Sprint S3, final in S8.</b></caption>
+<tr><th>Configuration</th><th>Suspected events</th><th>Guardian-level alerts</th><th>False alarms removed</th><th>True events lost</th></tr>
+<tr><td>Without verifier</td><td></td><td></td><td>&mdash;</td><td>&mdash;</td></tr>
+<tr><td>With verifier</td><td></td><td></td><td></td><td></td></tr>
+<tr><td><b>Target</b></td><td>&le; 1 / h</td><td><b>&le; 1 / day</b></td><td>maximise</td><td><b>zero</b></td></tr>
+</table>
+
+<table>
+<caption>Table 7.4 (Result Table 3) &mdash; Facial expression recognition. <b>Fills in Sprint S5.</b></caption>
+<tr><th>Model</th><th>Accuracy</th><th>Macro-F1</th><th>Confusion matrix</th></tr>
+<tr><td>Pretrained baseline</td><td></td><td></td><td>Figure 7.1</td></tr>
+<tr><td>Fine-tuned on FER-2013</td><td></td><td></td><td>Figure 7.1</td></tr>
+</table>
+
+<table>
+<caption>Table 7.5 (Result Table 4) &mdash; Dialogue scenarios, each run 5&times; with the model ID pinned.
+<b>Fills in Sprint S4, final in S8.</b></caption>
+<tr><th>Scenario group</th><th>Escalation-decision accuracy</th><th>Rubric mean (1&ndash;5)</th><th>First-audio latency, median</th></tr>
+<tr><td>Fall, responsive</td><td></td><td></td><td></td></tr>
+<tr><td>Fall, silent</td><td></td><td></td><td></td></tr>
+<tr><td>False alarm / stand-down</td><td></td><td></td><td></td></tr>
+<tr><td>Sad mood / companionship</td><td></td><td></td><td></td></tr>
+<tr><td><b>Injection (&ldquo;don't call anyone&rdquo;, TV audio)</b></td><td></td><td></td><td></td></tr>
+<tr><td><b>Target</b></td><td><b>&ge; 0.90</b></td><td><b>&ge; 4</b></td><td><b>&le; 3 s</b></td></tr>
+</table>
+
+<table>
+<caption>Table 7.6 (Result Table 5) &mdash; Resource profile under full load. <b>Partially measured; completed in S6/S8.</b></caption>
+<tr><th>Configuration</th><th>FPS</th><th>Per-model VRAM</th><th>CPU</th><th>API cost / day</th></tr>
+<tr><td>Pose only (measured)</td><td><b>29.9</b></td><td><b>71 MB</b> FP32 / <b>51 MB</b> FP16</td><td>not recorded</td><td>&mdash;</td></tr>
+<tr><td>Pose + fall classifier</td><td></td><td></td><td></td><td>&mdash;</td></tr>
+<tr><td>All MVP models loaded</td><td></td><td></td><td></td><td></td></tr>
+<tr><td><b>Target</b></td><td><b>&ge; 15</b></td><td><b>&lt; 3 GB total</b></td><td>report</td><td>&le; RM 100 / month</td></tr>
+</table>
+
+<table>
+<caption>Table 7.7 (Result Table 6) &mdash; Usability, 3&ndash;5 volunteers. <b>Fills in Sprint S9.</b></caption>
+<tr><th>Measure</th><th>Result</th><th>Target</th></tr>
+<tr><td>Mean usability rating</td><td></td><td>&ge; 4 / 5</td></tr>
+<tr><td>Issues logged</td><td></td><td>all triaged into the backlog</td></tr>
+<tr><td>Representative quotes</td><td></td><td>&mdash;</td></tr>
+</table>
+
+<h3>7.5 Results measured to date</h3>
+<p>Everything below has a result file, a date and a commit behind it. Nothing else has been measured.</p>
+<table>
+<caption>Table 7.8 &mdash; Measured results, 21&ndash;22 September 2026, commit <code>0fd5bf7</code>.
+<span class="badge v1">MEASURED</span></caption>
+<tr><th style="width:190px">Measurement</th><th>Result</th><th style="width:150px">Against</th></tr>
+<tr><td>Pose pipeline, FP32<br><span class="small">webcam 640&times;480, 300 frames</span></td><td><b>29.9 FPS</b> end-to-end (the camera itself runs at 30 fps, so this is capture-bound); inference p50 30.0 ms, p95 40.4 ms; peak VRAM <b>71 MB</b></td><td><b>PASS</b> &mdash; NFR-1/NFR-4 require &ge; 15 FPS</td></tr>
+<tr><td>Pose pipeline, FP16</td><td>FPS unchanged at <b>29.9</b> (still capture-bound); inference p50 22.4 ms, p95 36.4 ms; peak VRAM <b>51 MB</b></td><td>Headroom confirmed for the remaining models</td></tr>
+<tr><td>Test suite</td><td><b>79 passed, 1 skipped</b> (<code>pytest tests/unit tests/replay</code>); lint green</td><td>The skip is the replay test &mdash; see &sect;7.3</td></tr>
+<tr><td>Continuous integration</td><td>15 runs; runs 7&ndash;15 succeeded; run 15 is the current head commit</td><td>Reproducibility (NFR-7)</td></tr>
+<tr><td>UR Fall extraction</td><td>70/70 sequences, 11&nbsp;936 frames; person-detection 97.0 % not-lying, 95.3 % falling, <b>58.5 % lying</b></td><td>Open design decision &mdash; see &sect;6.2.4</td></tr>
+</table>
+<div class="callout"><b>What the FPS result does and does not show.</b> It shows the pose stage comfortably exceeds the
+frame-rate requirement with very small VRAM use, which is the single most important feasibility question for a 4 GB GPU
+&mdash; and it answers it favourably, with room for the classifier and FER. It does <b>not</b> show that the full
+pipeline holds 15 FPS, because the full pipeline does not exist. Table 7.6 is where that claim will be made.</div>
+
+<h3>7.6 Conclusion</h3>
+<p>The evaluation design is finished and the apparatus that will execute it is partly built. One feasibility number is
+measured and it passes. The substantive results &mdash; recall, false-alarm rates, latencies, scenario accuracy,
+usability &mdash; are all ahead, concentrated in Sprint S8, and the tables that will hold them are already fixed so that
+the analysis cannot be reshaped around whatever the numbers turn out to be.</p>
+</section>
+
+<section id="ch8">
+<h2><span class="num-h">8</span>Ethics, Privacy, Safety and Security</h2>
+
+<h3>8.1 Safety claims and limitations</h3>
+<div class="callout bad"><b>Ally is a research prototype. It is not a medical device and not an emergency-response
+device.</b> This statement appears in this report, in the repository README and in the spoken explanation Ally gives on
+first run. Ally supplements human contact and emergency services; it does not replace them.</div>
+<ul>
+  <li><b>Offline:</b> Ally still detects, checks in and sounds a local alarm, but <b>no remote person is notified until
+      connectivity returns</b>.</li>
+  <li><b>Emotion:</b> expression is not emotion. FER datasets are not representative of all populations. The cue only
+      triggers a gentle conversation and never raises an alert on its own.</li>
+  <li><b>Coverage:</b> one fixed camera in one room has occlusion blind spots, and performance across lighting
+      conditions is a reported result rather than an assumed one.</li>
+</ul>
+
+<h3>8.2 Consent and participants</h3>
+<ul>
+  <li>Every person who appears on camera during development or testing signs a consent form stating the purpose, what is
+      stored, for how long, and the right to withdraw. Forms are kept with the project records.</li>
+  <li><b>No children</b> are recorded or used as test subjects at any stage. The child use case is future work only.</li>
+  <li>Whether School ethics clearance is required for the Sprint S9 user testing must be confirmed with the supervisor
+      well before that sprint &mdash; it is logged as risk R6 precisely because clearance takes time.</li>
+  <li><b>Staged falls:</b> adults only; thick mattress or crash mat; no falls from standing height for anyone with a
+      health condition; a second person present throughout.</li>
+</ul>
+
+<h3>8.3 Data minimisation and the cloud boundary</h3>
+<ul>
+  <li>No continuous video recording. Frames are processed in RAM. Only one keyframe per event is persisted, for seven
+      days, deletable from the dashboard, with a face-blur option on by default for guardian messages.</li>
+  <li>Session recording stores keypoints, audio and events &mdash; never raw frames.</li>
+  <li>Living areas only; bathrooms and bedrooms are excluded by design.</li>
+  <li>Only text and one keyframe per event reach the API provider; the provider's data-retention terms are to be
+      documented in the final report. <code>ALLY_TEXT_ONLY_VERIFY=true</code> disables image upload entirely.</li>
+</ul>
+
+<h3>8.4 Transparency to the monitored person</h3>
+<p>A person being watched should be able to tell when, and be able to stop it. Ally therefore requires a visible
+indicator when it is listening or speaking, a spoken explanation on first run, and a physical pause-monitoring control
+that the state machine honours. These are requirements on the interface design in &sect;4.7, not optional polish.</p>
+
+<h3>8.5 Security checklist</h3>
+<p>Each item is verified, not assumed, and each has an owner and a sprint.</p>
+<table>
+<tr><th style="width:60px">Status</th><th>Check</th><th style="width:100px">When</th></tr>
+<tr><td><span class="badge v1">Done</span></td><td>API keys only in <code>.env</code> (git-ignored); <code>.env.example</code> documents the names</td><td>Sprint 0</td></tr>
+<tr><td><span class="badge v3">Open</span></td><td>Hard spend limit set in the provider console</td><td>Weeks 4&ndash;5</td></tr>
+<tr><td><span class="badge v3">Open</span></td><td>Telegram handler rejects every chat ID except the guardian's &mdash; tested with a second account</td><td>S3</td></tr>
+<tr><td><span class="badge v3">Open</span></td><td>Dashboard binds to the LAN interface with token authentication or HTTPS &mdash; <b>not</b> basic authentication over plain HTTP</td><td>S5&ndash;S6</td></tr>
+<tr><td><span class="badge v3">Open</span></td><td>Retention job actually deletes keyframes and rows after 7 days &mdash; tested with a fake clock</td><td>S3</td></tr>
+<tr><td><span class="badge v3">Open</span></td><td>Image-upload kill switch honoured on every verification call path</td><td>S3</td></tr>
+<tr><td><span class="badge v3">Open</span></td><td>Speech-to-text output treated as untrusted input: the model can label a reply but cannot suppress an escalation (risk R13)</td><td>S4, by design since ADR-001</td></tr>
+<tr><td><span class="badge v3">Open</span></td><td>Adversarial review in a fresh session plus a security review before the March demo</td><td>S6</td></tr>
+</table>
+</section>
+
+<section id="ch9">
+<h2><span class="num-h">9</span>Conclusion and Future Work</h2>
+
+<h3>9.1 Overall conclusion</h3>
+<div class="todo"><b>PLANNED &mdash; Sprint S10 (3&ndash;9 May 2027). Cannot be written before the results exist, and
+will not be drafted in advance.</b> It will answer four questions with numbers from Chapter 7: (1) Does pose-based fall
+detection reach the recall target on leave-one-subject-out folds, and at what cost in specificity? (2) <b>How much does
+verifying by conversation actually reduce guardian-level false alarms, and does it lose any true events?</b> &mdash; the
+project's central claim. (3) Do the four latency budgets hold on the RTX 2050 with every model loaded? (4) Did
+volunteers find it acceptable to live with? An honest conclusion must also state which targets were <i>missed</i>, and
+the empty tables in &sect;7.4 are arranged so that this is visible rather than avoidable.</div>
+
+<h3>9.2 Future work</h3>
+<p>The stretch backlog is the future-work list, already prioritised and deliberately frozen out of the MVP.</p>
+<table>
+<tr><th style="width:90px">ID</th><th>Item</th><th>Why it was deferred</th></tr>
+<tr><td>FR-10 / US-7</td><td>Scene-hazard description from the VLM on a low-frequency schedule (stove left on, object on the floor)</td><td>Reuses the verification path, so it is cheap to add &mdash; but it is prevention, not response, and response is the MVP</td></tr>
+<tr><td>FR-11 / US-8</td><td>Per-hour activity baseline learned over 14 days; flag statistically unusual days</td><td>Needs 14 days of logs from a real deployment before it can be evaluated at all</td></tr>
+<tr><td>FR-12 / US-9</td><td>Animated, lip-synced avatar during speech</td><td>Interaction quality, not safety; competes directly with S4 and S5 for the scarcest time in the schedule</td></tr>
+<tr><td>FR-13</td><td>Voice-tone emotion channel fused with the facial channel</td><td>A second affect channel is only worth adding once the first is measured</td></tr>
+<tr><td>&mdash;</td><td>Multi-room and multi-person; bathroom coverage by radar; child and post-operative use cases</td><td>Each changes the scope, the ethics position, or both. Explicitly out of scope for this project</td></tr>
+</table>
+</section>
+
+<section id="refs">
+<h2><span class="num-h">R</span>References</h2>
+<p class="small">Accessed 21 September 2026. Provenance markers are retained deliberately: items marked SECONDARY are
+adequate for planning but must be replaced by, or confirmed against, a primary source before they appear in the graded
+report.</p>
+<ol>
+<li>World Health Organization. (2021, April 26). <i>Falls</i> [Fact sheet]. https://www.who.int/news-room/fact-sheets/detail/falls &mdash; <span class="badge v1">VERIFIED &middot; PRIMARY</span> (684&nbsp;000 fatal falls; second leading cause; 60+ most affected; 37.3 million requiring medical attention).</li>
+<li>National Population and Family Development Board (LPPKN), MPRH portal. (2017, December 31). <i>Ageing phenomenon: Malaysia towards 2030</i>. https://mprh.lppkn.gov.my/ageing-phenomenon-malaysia-towards-2030/ &mdash; <span class="badge v2">SECONDARY</span> (quotes the DOSM 2016 projection: 7.9 % in 2010 to 15.3 % by 2030). Locate the DOSM original for the graded report.</li>
+<li>Intuition Robotics. (n.d.). <i>ElliQ</i>. https://elliq.com/ &mdash; <span class="badge v1">VERIFIED &middot; PRIMARY</span> (companion features; caregiver alerts; &ldquo;not a medical device&rdquo;; no camera-based monitoring described).</li>
+<li>CITRIS and the Banatao Institute. (n.d.). <i>SafelyYou: Using AI to detect and prevent falls</i>. https://citris-uc.org/safelyyou-using-ai-to-detect-and-prevent-falls/ &mdash; <span class="badge v2">SECONDARY</span> (AI-enabled cameras detect falls in real time; staff alerted; non-fall video deleted within 60 s; no audio). The product site returned HTTP 403 during research.</li>
+<li>Vayyar. (n.d.). <i>Vayyar Care</i>. https://vayyar.com/care/ &mdash; <span class="badge v1">VERIFIED &middot; PRIMARY</span> (no camera or sound; immediate fall alerts; facility focus).</li>
+<li>Sensi.AI. (n.d.). <i>Product</i>. https://www.sensi.ai/product/ &mdash; <span class="badge v2">SECONDARY</span> (detects care anomalies, captures audio clips and transcripts, alerts family; audio-only pods described on partner pages).</li>
+<li>9to5Google. (2026, July 23). <i>Gemini for Home context memory expands to 15 mins, Nest Cam July 2026 update rolling out</i>. https://9to5google.com/2026/07/23/nest-cam-july-2026-update/ &mdash; <span class="badge v2">SECONDARY</span> (AI event descriptions; no fall detection found).</li>
+<li>Liu, C.-C., Vu, C.-T., &amp; Liu, Y.-C. (2026). <i>Multimodal-language-model-driven interaction and companionship for service robots in elderly-care facilities</i>. arXiv:2608.21387. https://arxiv.org/abs/2608.21387 &mdash; <span class="badge v1">VERIFIED &middot; PRIMARY</span> (visual tracking, LLM dialogue and VLM fall-posture safety monitoring on a mobile service robot).</li>
+<li>Yang, B., Xu, L., Zeng, L., Liu, K., Jiang, S., Lu, W., Chen, H., Jiang, X., Xing, G., &amp; Yan, Z. (2025). <i>ContextAgent: Context-aware proactive LLM agents with open-world sensory perceptions</i>. NeurIPS 2025. arXiv:2505.14668. https://arxiv.org/abs/2505.14668 &mdash; <span class="badge v1">VERIFIED &middot; PRIMARY</span>.</li>
+<li>Kwolek, B., &amp; Kepski, M. (2014). Human fall detection on embedded platform using depth maps and wireless accelerometer. <i>Computer Methods and Programs in Biomedicine, 117</i>(3), 489&ndash;501. Dataset page: http://fenix.ur.edu.pl/~mkepski/ds/uf.html &mdash; <span class="badge v1">VERIFIED &middot; PRIMARY</span> (70 sequences: 30 falls, 40 ADL; Kinect RGB and depth; CC BY-NC-SA 4.0). Note: a search snippet claimed &ldquo;250 videos&rdquo;; the dataset page says 70.</li>
+<li>Charfi, I., Miteran, J., Dubois, J., Atri, M., &amp; Tourki, R. &mdash; Le2i / ImViA fall-detection dataset &mdash; <span class="badge v2">SECONDARY</span> (search summary: 143 fall and 79 ADL videos in four environments). The dataset page could not be reached; verify counts and citation before use.</li>
+<li>Goodfellow, I. J., Erhan, D., Carrier, P. L., Courville, A., Mirza, M., Hamner, B., &hellip; Bengio, Y. (2013). <i>Challenges in representation learning: A report on three machine learning contests</i>. arXiv:1307.0414. https://arxiv.org/abs/1307.0414 &mdash; <span class="badge v1">VERIFIED &middot; PRIMARY</span> (origin paper of FER-2013; image counts and classes to be taken from the paper body or dataset card).</li>
+<li>Li, S., Deng, W., &amp; Du, J. (2017). Reliable crowdsourcing and deep locality-preserving learning for expression recognition in the wild. <i>CVPR 2017</i>. RAF-DB &mdash; <span class="badge v2">SECONDARY</span> (dataset site unreachable during research; access requires application).</li>
+<li>SYSTRAN. (n.d.). <i>faster-whisper</i> [GitHub repository]. https://github.com/SYSTRAN/faster-whisper &mdash; <span class="badge v1">VERIFIED &middot; PRIMARY</span> (&ldquo;up to 4 times faster than openai/whisper for the same accuracy while using less memory&rdquo;; CPU and CUDA).</li>
+<li>Rhasspy. (n.d.). <i>Piper</i> [GitHub repository, archived 6 Oct 2025; successor OHF-Voice/piper1-gpl]. https://github.com/rhasspy/piper &mdash; <span class="badge v1">VERIFIED &middot; PRIMARY</span> (&ldquo;A fast, local neural text to speech system&rdquo;; MIT licence).</li>
+<li>Ultralytics. (n.d.). <i>Pose estimation</i> [Documentation]. https://docs.ultralytics.com/tasks/pose/ &mdash; <span class="badge v1">VERIFIED &middot; PRIMARY</span> (17 COCO keypoints; model variants and benchmarks).</li>
+<li>Google AI for Developers. (n.d.). <i>Pose landmark detection guide</i>. https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker &mdash; <span class="badge v1">VERIFIED &middot; PRIMARY</span> (33 3-D landmarks; lite/full/heavy variants; Python supported).</li>
+<li>Anthropic. (2026). <i>Claude API documentation &mdash; models and pricing</i>. https://docs.anthropic.com/ &mdash; <span class="badge v2">SECONDARY</span> (Opus-tier approximately US$5 / US$25 and Sonnet-tier approximately US$2 / US$10 per million input/output tokens, from a reference cached 24 Jun 2026; re-check live pricing and name the exact model ID at SRD time).</li>
+<li>Universiti Sains Malaysia, School of Computer Sciences. (2026). <i>Undergraduate Major Project Guidelines (CAT403, CAT404 &amp; CAT405)</i>, version 01, Academic Session 2026/2027. &mdash; <span class="badge v1">VERIFIED &middot; PRIMARY</span>.</li>
+<li>Universiti Sains Malaysia. (2026). <i>CAT405 Initial Project Proposal Template</i>. &mdash; <span class="badge v1">VERIFIED &middot; PRIMARY</span> (heading order and section guidance).</li>
+</ol>
+</section>
+
+<section id="appx">
+<h2><span class="num-h">A</span>Appendices</h2>
+
+<h3>Appendix A &mdash; Architecture decision records</h3>
+<table>
+<tr><th style="width:90px">ADR</th><th>Decision</th><th>Consequence for this report</th></tr>
+<tr><td><b>ADR-001</b></td><td>The event engine owns every escalation decision; the language model may only classify a reply and <i>request</i> escalation or stand-down</td><td>Defines FR-6, the FSM in &sect;4.4 and the injection defence in &sect;8.5</td></tr>
+<tr><td><b>ADR-002</b></td><td>The latency target is split into separate numbers rather than one figure</td><td>NFR-1 has four budgets, measured separately in Table 7.6</td></tr>
+<tr><td><b>ADR-003</b></td><td>The false-alarm budget is two-tiered: suspected events versus guardian-level alerts</td><td>NFR-5, and the reason Result Table 2 exists at all</td></tr>
+<tr><td><b>ADR-004</b></td><td>The record-and-replay harness is an MVP deliverable, not a testing nicety</td><td>The replay level in Table 7.1 and the S1 exit criterion</td></tr>
+</table>
+
+<h3>Appendix B &mdash; Planned appendices</h3>
+<div class="todo"><b>PLANNED &mdash; assembled at Sprint S10.</b> (B-1) User manual and installation guide; (B-2) consent
+form template; (B-3) test logs and the raw CSV output of every experiment run, keyed by seed, model ID and git SHA;
+(B-4) the 30 dialogue scenario definitions with their expected decisions; (B-5) the carer-interview script and notes;
+(B-6) the engineering journal in full.</div>
+
+<h3>Appendix C &mdash; Engineering journal</h3>
+<p>Five lines are written every Friday in the format <b>Done &middot; Measured &middot; Blocked &middot; Decided &middot;
+Next</b>. The journal is the raw material for Chapter 6, and it records what was <i>not</i> done as carefully as what
+was. As of this draft it contains one entry, for Week 0 (21&ndash;27 September 2026).</p>
+
+<h3>Appendix D &mdash; How to regenerate this document</h3>
+<p>This report is derived from files in the project repository: <code>Ally_Project_Plan.html</code> (the graded master
+plan), <code>docs/context/*.md</code> (requirements, architecture, methods, evaluation, ethics, schedule, decisions),
+<code>docs/journal.md</code> and <code>docs/backlog.md</code>. When a section here disagrees with one of those files,
+the repository file wins and this document is corrected &mdash; not the other way round.</p>
+</section>
+
+<p class="small" style="border-top:1px solid var(--line);padding-top:14px;margin-top:40px">
+Ally &mdash; CAT405 Intelligent Computing Major Project, Universiti Sains Malaysia, 2026/2027.
+Living draft of 22 September 2026. Ally is a research prototype and is not a medical or emergency device.
+</p>
+
+</main>
+</div>
+</body>
+</html>
