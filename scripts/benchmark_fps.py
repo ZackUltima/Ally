@@ -102,7 +102,7 @@ def main() -> int:
     print(f"model={args.model} device={gpu_name} frames={n} imgsz={args.imgsz} half={half}")
     print(f"end-to-end FPS={fps:.1f}  inference p50={p50:.1f} ms  p95={p95:.1f} ms")
     print(f"peak VRAM={peak_mb:.0f} MB")
-    print("PASS" if fps >= s.ally_target_fps else "FAIL", f"(target ≥ {s.ally_target_fps} FPS, hard rule 8)")
+    print("PASS" if fps >= s.ally_target_fps else "FAIL", f"(target >= {s.ally_target_fps} FPS, hard rule 8)")
 
     out = s.ally_results_dir / "bench" / "pose_bench.csv"
     out.parent.mkdir(parents=True, exist_ok=True)
