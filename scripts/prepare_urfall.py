@@ -38,7 +38,7 @@ from pathlib import Path
 
 BASE_URL = "https://fenix.ur.edu.pl/mkepski/ds/data/"
 ALLOWED_HOST = "fenix.ur.edu.pl"
-LICENCE = "CC BY-NC-SA 4.0 — Kwolek & Kepski, UR Fall Detection Dataset"
+LICENCE = "CC BY-NC-SA 4.0 - Kwolek & Kepski, UR Fall Detection Dataset"
 N_FALLS, N_ADLS = 30, 40
 CAM = 0
 CHUNK = 1 << 20
@@ -153,7 +153,7 @@ def main() -> int:
     rgb, zips, annotations = dest / "rgb", dest / "zips", dest / "annotations"
 
     todo = [(s, k) for s, k in selection if not any((rgb / s).glob("*.png"))]
-    print(f"UR Fall → {dest}  ({LICENCE})")
+    print(f"UR Fall -> {dest}  ({LICENCE})")
     print(f"  selection: {len(selection)} sequences, {len(todo)} to fetch (~{58 * len(todo) / 1000:.1f} GB)")
     if args.dry_run:
         for s, _ in todo:
