@@ -6,7 +6,8 @@ sequence such as UR Fall's `data/urfall/rgb/<sequence>/` (see scripts/prepare_ur
 Output per source: <out>/<stem>.npz with ts[T] (s), frame_id[T] (the number in the file name, or 1-based
 index), keypoints[T, 17, 3] (x, y, conf; zeros when no person), bbox[T, 4], person_present[T], fps.
 Frames are read, inferred and discarded; nothing but keypoints is written (hard rule 2). Multi-person
-frames keep the highest-confidence detection (MVP is single-person).
+frames keep the highest-confidence detection (MVP is single-person). <out>/manifest.json records the model,
+imgsz, device, ultralytics version and per-sequence frame/detection counts for every .npz present in <out>.
 
     python scripts/extract_keypoints.py data/urfall/rgb --out data/urfall/keypoints
     python scripts/extract_keypoints.py clip.mp4 --out data/self_recorded/keypoints --model yolov8n-pose.pt
@@ -15,9 +16,11 @@ frames keep the highest-confidence detection (MVP is single-person).
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from collections.abc import Iterator
+from datetime import UTC, datetime
 from pathlib import Path
 
 import numpy as np
@@ -105,6 +108,18 @@ def extract(source: Path, model, imgsz: int, device: str, image_fps: float) -> d
     }
 
 
+def write_manifest(out: Path, params: dict[str, object]) -> Path:
+    """Summarise every .npz in `out` (not just this run's) so a resumed run still yields one full manifest."""
+    seqs = {}
+    for npz in sorted(out.glob("*.npz")):
+        d = np.load(npz)
+        seqs[npz.stem] = {"frames": int(len(d["ts"])), "person_present": int(d["person_present"].sum())}
+    dst = out / "manifest.json"
+    body = {"extracted_at": datetime.now(UTC).isoformat(), **params, "sequences": seqs}
+    dst.write_text(json.dumps(body, indent=2))
+    return dst
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("src", type=Path, help="video file, directory of videos, or image-sequence directories")
@@ -116,6 +131,7 @@ def main() -> int:
     p.add_argument("--overwrite", action="store_true")
     args = p.parse_args()
 
+    import ultralytics  # noqa: PLC0415
     from ultralytics import YOLO  # noqa: PLC0415
 
     sources = iter_sources(args.src)
@@ -133,6 +149,14 @@ def main() -> int:
         np.savez_compressed(dst, **data)
         n = len(data["ts"])
         print(f"{s.name}: {n} frames, person in {int(data['person_present'].sum())} -> {dst.name}")
+    params = {
+        "model": args.model,
+        "imgsz": args.imgsz,
+        "device": args.device,
+        "image_fps_assumed": args.fps,
+        "ultralytics": ultralytics.__version__,
+    }
+    print(f"manifest -> {write_manifest(args.out, params)}")
     return 0
 
 

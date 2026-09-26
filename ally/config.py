@@ -28,11 +28,12 @@ class Settings(BaseSettings):
 
     # ---- model routing (IDs fixed in the SRD; never hard-coded elsewhere) --------------------
     ally_dialogue_model: str | None = None
-    ally_verify_model: str | None = None
     ally_dialogue_effort: Literal["low", "medium", "high"] = "high"  # re-measured in Sprint 4 (NFR-1)
 
     # ---- privacy switches (NFR-2, hard rule 3) ------------------------------------------------
-    ally_text_only_verify: bool = False
+    # No image ever goes to a cloud model (ADR-007/015). False → the guardian's Telegram message has no
+    # photo either.
+    ally_guardian_keyframe: bool = True
     ally_blur_face_for_guardian: bool = True
     ally_keyframe_retention_days: int = Field(default=7, ge=1)
 
@@ -53,7 +54,45 @@ class Settings(BaseSettings):
     ally_verify_max_prompts: int = 2
     ally_confirmed_timeout_min: float = 10.0
     ally_stand_down_cooldown_min: float = 5.0
-    ally_mood_sample_s: float = 5.0
+    # ADR-005/006 settings; SYNTHESIS values, accepted provisionally by the human on 23 Sep 2026 (P-39).
+    ally_decision_posture_window_s: float = 2.0  # majority vote of posture at the VERIFY decision
+    ally_recovery_min_down_s: float | None = Field(
+        default=None, description="None = any impact that reaches the floor counts as a fall"
+    )
+
+    # ---- mood estimate (ADR-013) — SYNTHESIS values, decisions.md "Numbers for ADR-013/014/017" --
+    ally_affect_sample_s: float = 1.0  # seconds between face/FER samples (judgement; re-baseline S1)
+    ally_face_min_px: int = 48  # quality gate: minimum face box side (FER-2013 is 48×48, SECONDARY)
+    ally_face_max_yaw_deg: float = 30.0  # quality gate: near-frontal (judgement)
+    ally_face_min_confidence: float = 0.5  # MediaPipe Face Detector default
+    ally_mood_window_min: float = 30.0  # fusion window, same as the inactivity T
+    ally_mood_low_threshold: float = -0.3  # fused valence at/below → low
+    ally_mood_positive_threshold: float = 0.3  # fused valence at/above → positive
+    ally_mood_weight_face: float = 1.0  # equal weights = unweighted late-fusion baseline (S8 ablation)
+    ally_mood_weight_speech: float = 1.0
+    ally_mood_weight_movement: float = 1.0
+    ally_movement_baseline_days: int = 7  # movement channel absent until a baseline exists
+    ally_companion_cooldown_min: float = 120.0  # between mood-triggered COMPANION_CHATs
+    ally_checkin_time: str = "10:00"  # scheduled daily check-in, HH:MM local
+
+    # ---- environment (ADR-014/017/018) — SYNTHESIS values, same decisions.md entry -------------
+    ally_object_sample_s: float = 10.0  # seconds between detector runs
+    ally_sound_min_confidence: float = 0.5  # sigmoid multi-label default threshold
+    ally_hazard_sound_labels: tuple[str, ...] = ("Smoke detector, smoke alarm", "Fire alarm", "Shatter")
+    ally_logged_sound_labels: tuple[str, ...] = (
+        "Screaming",
+        "Yell",
+        "Crying, sobbing",
+        "Glass",
+        "Alarm",
+        "Alarm clock",
+        "Buzzer",
+        "Siren",
+    )
+    ally_fall_evidence_sound_labels: tuple[str, ...] = ("Thump, thud",)
+    ally_hazard_cooldown_min: float = 5.0  # same as the stand-down cooldown
+    ally_scene_caption_enabled: bool = False  # FR-21: turned on only if the S1 VRAM table allows (P-55)
+    ally_caption_sample_s: float = 1800.0  # room caption every 30 min, plus one per event
 
     # ---- dashboard (hard rule 7) ----------------------------------------------------------------
     ally_dashboard_bind: str = "127.0.0.1"
