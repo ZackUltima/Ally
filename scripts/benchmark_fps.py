@@ -39,7 +39,14 @@ def main() -> int:
     p.add_argument("--frames", type=int, default=300)
     p.add_argument("--imgsz", type=int, default=640)
     p.add_argument("--device", default="0", help="'0' = first CUDA GPU, 'cpu' for CPU")
-    p.add_argument("--half", action="store_true", help="FP16 inference (GPU only)")
+    p.add_argument(
+        "--quantize",
+        type=int,
+        choices=(8, 16),
+        default=None,
+        help="16 = FP16, 8 = INT8 inference (GPU only); default None = FP32. Ultralytics >=8.4 API "
+        "(replaces the deprecated --half flag, which now warns and maps to quantize=16).",
+    )
     p.add_argument("--no-show", action="store_true", help="do not open a preview window")
     args = p.parse_args()
 
@@ -58,7 +65,7 @@ def main() -> int:
 
     use_cuda = args.device != "cpu" and torch.cuda.is_available()
     device = args.device if use_cuda else "cpu"
-    half = bool(args.half and use_cuda)
+    quantize = args.quantize if use_cuda else None
     model = YOLO(args.model)
     if use_cuda:
         torch.cuda.reset_peak_memory_stats()
@@ -68,7 +75,7 @@ def main() -> int:
         ok, frame = cap.read()
         if not ok:
             break
-        model.predict(frame, imgsz=args.imgsz, device=device, half=half, verbose=False)
+        model.predict(frame, imgsz=args.imgsz, device=device, quantize=quantize, verbose=False)
 
     infer_ms: list[float] = []
     t_start = time.perf_counter()
@@ -78,7 +85,7 @@ def main() -> int:
         if not ok:
             break
         t0 = time.perf_counter()
-        res = model.predict(frame, imgsz=args.imgsz, device=device, half=half, verbose=False)
+        res = model.predict(frame, imgsz=args.imgsz, device=device, quantize=quantize, verbose=False)
         infer_ms.append((time.perf_counter() - t0) * 1000)
         n += 1
         if not args.no_show:
@@ -99,7 +106,7 @@ def main() -> int:
     peak_mb = torch.cuda.max_memory_allocated() / 2**20 if use_cuda else 0.0
     gpu_name = torch.cuda.get_device_name(0) if use_cuda else "cpu"
 
-    print(f"model={args.model} device={gpu_name} frames={n} imgsz={args.imgsz} half={half}")
+    print(f"model={args.model} device={gpu_name} frames={n} imgsz={args.imgsz} quantize={quantize}")
     print(f"end-to-end FPS={fps:.1f}  inference p50={p50:.1f} ms  p95={p95:.1f} ms")
     print(f"peak VRAM={peak_mb:.0f} MB")
     print("PASS" if fps >= s.ally_target_fps else "FAIL", f"(target >= {s.ally_target_fps} FPS, hard rule 8)")
@@ -117,7 +124,7 @@ def main() -> int:
                     "model",
                     "device",
                     "imgsz",
-                    "half",
+                    "quantize",
                     "frames",
                     "fps",
                     "p50_ms",
@@ -132,7 +139,7 @@ def main() -> int:
                 args.model,
                 gpu_name,
                 args.imgsz,
-                half,
+                quantize if quantize is not None else "",
                 n,
                 f"{fps:.2f}",
                 f"{p50:.2f}",

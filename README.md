@@ -1,10 +1,10 @@
 # Ally
 
-A laptop + webcam care companion that detects falls, prolonged inactivity and low mood, **talks to the person
-first**, and escalates to a guardian on Telegram only after verification. Raw video never leaves the device.
+A multi-modal laptop + webcam + microphone care companion for an older adult living alone. It detects falls and prolonged inactivity, estimates mood from facial expression, speech and movement, notices household objects and sounds, **talks to the person first**, and escalates to a guardian on Telegram only after verification. Raw video never leaves the device, and no image goes to any cloud model.
 
 CAT405 final-year project, Universiti Sains Malaysia, 2026/27. **Research prototype — not a medical or
-emergency device.** The graded plan is `Ally_Project_Plan.html`; working notes live in `docs/context/`.
+emergency device.** The current plan is `Ally_Project_Plan_v1.3.html` (v1.2 kept as the previous version); working notes live in
+`docs/context/`, diagrams in `docs/diagrams/`, the reading list in `research/`.
 
 ## Setup (Windows 11, RTX 2050, Python 3.11)
 
@@ -37,20 +37,21 @@ Before the first `install`, confirm the CUDA wheel tag (`TORCH_INDEX`, default `
 | `make replay SESSION=<name>` | recorded session → perception → fusion → agent, prints events |
 | `make scenarios` | 30 scripted dialogue scenarios (needs `ANTHROPIC_API_KEY`) |
 | `make run` | live app · `make bench` FPS/VRAM of the pose model on the webcam |
-| `make train-fall` / `eval-fall` / `train-fer` / `eval-fer` | experiments; fixed seeds; write to `results/` |
+| `make train-fall` / `eval-fall` · `train-fer` / `eval-fer` | experiments; fixed seeds; write to `results/` |
 
 ## Layout
 
 ```
-ally/        perception · fusion (pure FSM) · agent · speech · notify · api · storage · contracts.py · config.py · main.py
-scripts/     benchmark_fps · extract_keypoints · record_session · prepare_urfall · train_/eval_ fall & fer · run_scenarios
+ally/        perception · affect · environment · fusion (pure FSM + mood fusion) · agent · speech · notify · api · storage · contracts.py · config.py · main.py
+scripts/     benchmark_fps · extract_keypoints · record_session · prepare_urfall · train_/eval_ fall · train_/eval_ fer · run_scenarios
 tests/       unit/ · replay/<session>/expected_events.json · scenarios/*.yaml
-docs/        context/ (architecture, requirements, methods, evaluation, ethics, schedule, decisions) · journal.md
+docs/        context/ (architecture, requirements, methods, evaluation, ethics, schedule, decisions) · diagrams/ · backlog.md · modules.md · journal.md
+research/    reading list: one .md per topic (title, link, relevance, status)
 data/ models/ results/   git-ignored
 ```
 
 Rules every change must respect are in `CLAUDE.md` (the FSM owns escalation; no raw frames on disk; only
-text + one keyframe per event leaves the device; numbers change only with an ADR).
+text + one keyframe per event leaves the device, and no image goes to a cloud model; numbers change only with an ADR).
 
 ## Datasets
 
@@ -66,5 +67,6 @@ leave-one-subject-out CV — the dataset does not publish that mapping.
 
 ## Licence and data
 
-Code: to be decided before the SRD. UR Fall Detection Dataset is CC BY-NC-SA 4.0; FER-2013 under its Kaggle
-terms. No dataset or recording is committed to this repository.
+Code: to be decided before the SRD. UR Fall Detection Dataset is CC BY-NC-SA 4.0. FER datasets (FER-2013, AffectNet,
+FACES / ElderReact) are back with ADR-013; their licences are recorded in `docs/context/decisions.md` before use (P-3).
+No dataset or recording is committed to this repository.

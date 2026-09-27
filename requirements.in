@@ -22,7 +22,7 @@ piper-tts>=1.2
 sounddevice>=0.4.6
 webrtcvad-wheels>=2.0.14
 
-# llm / vlm — only ally/agent/llm_client.py imports this
+# llm (text only, ADR-007) — only ally/agent/llm_client.py imports this
 anthropic>=0.30
 
 # backend
