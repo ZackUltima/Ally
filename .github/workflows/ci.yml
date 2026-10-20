@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    env:
+      POSE_LITE_URL: https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task
+      POSE_LITE_SHA256: 59929e1d1ee95287735ddd833b19cf4ac46d29bc7afddbbf6753c459690d574a
+      ALLY_POSE_MODEL: ${{ github.workspace }}/.models/pose_landmarker_lite.task
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: System libraries MediaPipe loads (OpenGL ES, EGL)
+        run: sudo apt-get update && sudo apt-get install -y libgles2 libegl1
+
+      - name: Install (same pins as ml/fall/environment.yml)
+        run: pip install -r ml/fall/requirements.txt -e ml/fall
+
+      - name: Repository audit (D-52)
+        run: python tools/repo_audit.py
+
+      - name: Lint
+        run: ruff check ml/fall tools
+
+      - name: Pose model (pinned version, checksum checked; never committed)
+        run: |
+          mkdir -p .models
+          curl -sSfL -o "$ALLY_POSE_MODEL" "$POSE_LITE_URL"
+          echo "$POSE_LITE_SHA256  $ALLY_POSE_MODEL" | sha256sum -c -
+
+      - name: Tests, ml/fall (coverage at least 80%)
+        working-directory: ml/fall
+        run: pytest
+
+      - name: Tests, tools
+        run: pytest -p no:cacheprovider tools/tests
