@@ -1,0 +1,32 @@
+# Kept out of the public repository (D-52)
+research/papers/
+*.bak-*
+.mcp.json
+.roo/
+.claude/settings.local.json
+temporary-for-srd-delete-if-done/
+.env
+*.env
+
+# Data never goes in the repository (D-19, D-52); the data root is ~/ally-data in WSL
+data/
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.npz
+*.npy
+*.parquet
+*.task
+
+# Tool scratch
+.superpowers/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.ipynb_checkpoints/
