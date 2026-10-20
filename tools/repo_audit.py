@@ -39,6 +39,9 @@ EXCLUDED_PATTERNS: tuple[str, ...] = (
     "*.env",
 )
 
+# Dataset reports: small tables of counts, no data (F1 Task 8).
+ALLOWED_PATTERNS: tuple[str, ...] = ("ml/*/results/data/*.md",)
+
 EMAIL = re.compile(
     r"[\w.+-]+(?:@|&#64;|&#x40;)(?:[\w-]+\.)+[a-z]{2,}\b", re.IGNORECASE
 )
@@ -55,6 +58,8 @@ MAX_TEXT_BYTES = 5_000_000
 
 
 def _excluded(path: str) -> bool:
+    if any(fnmatch(path, pattern) for pattern in ALLOWED_PATTERNS):
+        return False
     return any(fnmatch(path, pattern) for pattern in EXCLUDED_PATTERNS)
 
 

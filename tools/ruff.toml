@@ -1,0 +1,2 @@
+# Same lint rules as ml/fall, whichever folder ruff is run from (CI runs it from the root).
+extend = "../ml/fall/pyproject.toml"

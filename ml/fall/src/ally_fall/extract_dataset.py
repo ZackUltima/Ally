@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Protocol
 
 from ally_fall.build import keypoint_path
-from ally_fall.datasets import VideoItem, gmdcsa24
+from ally_fall.datasets import VideoItem, caucafall, gmdcsa24
 from ally_fall.keypoints import (
     Frame,
     KeypointSeq,
@@ -103,7 +103,10 @@ def run(
     return report
 
 
-ADAPTERS: dict[str, Callable[[Path], list[VideoItem]]] = {gmdcsa24.DATASET: gmdcsa24.items}
+ADAPTERS: dict[str, Callable[[Path], list[VideoItem]]] = {
+    gmdcsa24.DATASET: gmdcsa24.items,
+    caucafall.DATASET: caucafall.items,
+}
 MODEL_FILES: dict[str, str] = {
     "lite": "pose_landmarker_lite.task",
     "full": "pose_landmarker_full.task",

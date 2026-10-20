@@ -10,6 +10,8 @@ temporary-for-srd-delete-if-done/
 
 # Data never goes in the repository (D-19, D-52); the data root is ~/ally-data in WSL
 data/
+# except the dataset reports: small tables of counts, no data (F1 Task 8)
+!ml/fall/results/data/
 *.mp4
 *.avi
 *.mov

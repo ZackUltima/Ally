@@ -44,6 +44,13 @@ def test_allows_ordinary_paths() -> None:
     assert find_problems(paths, _no_text) == []
 
 
+def test_allows_dataset_reports_only() -> None:
+    assert find_problems(["ml/fall/results/data/caucafall.md"], _no_text) == []
+    for path in ["ml/fall/results/data/train.csv", "ml/fall/results/data/x.npz",
+                 "ml/fall/data/notes.md"]:
+        assert len(find_problems([path], _no_text)) == 1, path
+
+
 def test_flags_personal_details() -> None:
     texts = {
         "a.md": f"contact me at {SAMPLE_EMAIL}",
