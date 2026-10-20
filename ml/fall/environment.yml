@@ -1,0 +1,10 @@
+# Conda env for ml/fall (WSL Ubuntu). Python from conda-forge, packages from pip at the
+# exact versions in requirements.txt (the same pins CI uses).
+name: ally-fall
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11.17
+  - pip
+  - pip:
+      - -r requirements.txt

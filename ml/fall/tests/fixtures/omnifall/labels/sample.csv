@@ -1,0 +1,6 @@
+path,label,start,end,subject,cam,dataset
+Fall/S1_FallBackwards,1,2.0,3.1,1,1,caucafall
+Fall/S1_FallBackwards,0,0.0,2.0,1,1,caucafall
+Fall/S1_FallBackwards,2,3.1,6.0,1,1,caucafall
+ADL/S2_Walk,0,0.0,4.0,2,1,caucafall
+Subject_1/ADL/01,4,0.0,0.5,1,1,GMDCSA24
