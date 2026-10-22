@@ -10,16 +10,21 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import shutil
 import zipfile
+import zlib
 from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from itertools import chain
 from pathlib import Path
 
 import cv2
 import numpy as np
 from numpy.typing import NDArray
+
+from ally_fall.avi import dib_frames, is_uncompressed_avi
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +82,14 @@ def load_seq(path: Path) -> KeypointSeq:
 
 
 def video_frames(video: Path) -> Iterator[Frame]:
-    """Frames of a video file with the decoder's own times (CAP_PROP_POS_MSEC)."""
+    """Frames of a video file with the decoder's own times (CAP_PROP_POS_MSEC).
+
+    Uncompressed AVI (Le2i) is read by ally_fall.avi instead: OpenCV 5.0.0 corrupts memory
+    converting those frames.
+    """
+    if is_uncompressed_avi(video):
+        yield from dib_frames(video)
+        return
     capture = cv2.VideoCapture(str(video))
     if not capture.isOpened():
         raise ValueError(f"cannot open video {video}")
@@ -103,6 +115,100 @@ def folder_frames(folder: Path, times_s: Sequence[float]) -> Iterator[Frame]:
         if image is None:
             raise ValueError(f"cannot read image {file}")
         yield float(time_s), cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+
+# UP-Fall names each PNG by its capture time; the fraction is absent when it is exactly 0.
+_FRAME_NAME = re.compile(r"(\d{4}-\d{2}-\d{2}T\d{2}_\d{2}_\d{2})(?:\.(\d{1,6}))?\.png$")
+
+
+def _zip_images(archive: zipfile.ZipFile) -> list[str]:
+    return [n for n in archive.namelist() if Path(n).suffix.lower() in IMAGE_SUFFIXES]
+
+
+def _same_bytes(archive: zipfile.ZipFile, name: str, others: Iterable[str]) -> str | None:
+    """The first of `others` whose content is byte for byte that of `name`, else None."""
+    info = archive.getinfo(name)
+    data: bytes | None = None
+    for other in others:
+        candidate = archive.getinfo(other)
+        if (candidate.CRC, candidate.file_size) != (info.CRC, info.file_size):
+            continue
+        data = archive.read(name) if data is None else data
+        if archive.read(other) == data:
+            return other
+    return None
+
+
+_PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+
+
+def _cut_short_png(data: bytes) -> bool:
+    """A PNG that starts as one but has no end marker (IEND): its writing was cut short."""
+    return data.startswith(_PNG_SIGNATURE) and b"IEND" not in data
+
+
+def _timed_images(archive: zipfile.ZipFile, clip: Path) -> list[tuple[datetime, str]]:
+    """The time-named images in time order: the frames, counted and read alike.
+
+    An image whose name has no time is skipped only if it is byte for byte a time-named
+    frame of the same zip (Subject7Activity1Trial1Camera2.zip holds such a copy, checked
+    2026-10-20, PO); any other one stops the clip. A frame whose PNG was cut short
+    (Subject6Activity10Trial2Camera2.zip, 2026-10-20, PO) is skipped like a dropped frame;
+    any other unreadable image still stops the clip when it is read.
+    """
+    timed: list[tuple[datetime, str]] = []
+    misnamed: list[str] = []
+    for name in _zip_images(archive):
+        match = _FRAME_NAME.search(Path(name).name)
+        if match is None:
+            misnamed.append(name)
+            continue
+        if _cut_short_png(archive.read(name)):
+            logger.warning("%s: skipped cut-short frame %s (no PNG end marker)", clip.name, name)
+            continue
+        stamp = datetime.strptime(match.group(1), "%Y-%m-%dT%H_%M_%S")
+        fraction = match.group(2) or "0"
+        timed.append((stamp.replace(microsecond=int(fraction.ljust(6, "0"))), name))
+    for name in misnamed:
+        original = _same_bytes(archive, name, (n for _, n in timed))
+        if original is None:
+            raise ValueError(f"{clip}: image name without a time: {name}")
+        logger.warning("%s: skipped duplicate %s (same bytes as %s)", clip.name, name, original)
+    timed.sort()
+    for (earlier, _), (later, name) in zip(timed, timed[1:], strict=False):
+        if later == earlier:
+            raise ValueError(f"{clip}: two images have the same time ({name})")
+    return timed
+
+
+def zip_frame_count(clip: Path) -> int:
+    """The number of frames in a zip of frames (the source count deletion is checked against)."""
+    try:
+        with zipfile.ZipFile(clip) as archive:
+            return len(_timed_images(archive, clip))
+    except (zipfile.BadZipFile, zlib.error, OSError) as error:
+        raise ValueError(f"cannot open frame zip {clip}: {error}") from error
+
+
+def zip_frames(clip: Path) -> Iterator[Frame]:
+    """Frames of a zip of time-named PNGs (UP-Fall), in time order, times from the first frame.
+
+    Both UP-Fall cameras and the sensor CSV share these timestamps (checked 2026-10-20 on
+    Subject1Activity1Trial1), and OmniFall's labels end with the last frame.
+    """
+    try:
+        with zipfile.ZipFile(clip) as archive:
+            timed = _timed_images(archive, clip)
+            if timed:
+                logger.info("%s: first frame %s", clip.name, timed[0][0].isoformat())
+            for stamp, name in timed:
+                image = cv2.imdecode(np.frombuffer(archive.read(name), np.uint8), cv2.IMREAD_COLOR)
+                if image is None:
+                    raise ValueError(f"cannot read image {name} in {clip}")
+                time_s = (stamp - timed[0][0]).total_seconds()
+                yield time_s, cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    except (zipfile.BadZipFile, zlib.error, OSError) as error:
+        raise ValueError(f"cannot read frame zip {clip}: {error}") from error
 
 
 def extract(

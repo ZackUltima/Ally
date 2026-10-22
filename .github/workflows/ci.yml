@@ -21,8 +21,10 @@ jobs:
       - name: System libraries MediaPipe loads (OpenGL ES, EGL)
         run: sudo apt-get update && sudo apt-get install -y libgles2 libegl1
 
-      - name: Install (same pins as ml/fall/environment.yml)
-        run: pip install -r ml/fall/requirements.txt -e ml/fall
+      - name: Install (same pins as ml/fall/environment.yml; torch as its CPU build)
+        run: |
+          pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+          pip install -r ml/fall/requirements.txt -e ml/fall
 
       - name: Repository audit (D-52)
         run: python tools/repo_audit.py

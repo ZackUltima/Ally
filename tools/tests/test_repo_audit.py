@@ -29,6 +29,8 @@ EXCLUDED_PATHS = [
     "a.npz",
     "a.parquet",
     "a.task",
+    "a.pt",
+    "runs/x.pth",
 ]
 
 

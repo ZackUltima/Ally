@@ -68,6 +68,15 @@ def load_table(path: Path) -> pd.DataFrame:
     return table[COLUMNS]
 
 
+def video_identities(path: Path) -> dict[str, tuple[int, int]]:
+    """OmniFall `path` -> (subject, cam), for adapters whose file names lack them."""
+    table = load_table(path)[["path", "subject", "cam"]].drop_duplicates()
+    return {
+        str(video): (int(subject), int(cam))
+        for video, subject, cam in table.itertuples(index=False)
+    }
+
+
 def label_names(omnifall_dir: Path) -> tuple[str, ...]:
     """The 16 label names in id order, from labels/label2id.csv."""
     table = pd.read_csv(omnifall_dir / "labels" / "label2id.csv").sort_values("id")

@@ -35,6 +35,8 @@ EXCLUDED_PATTERNS: tuple[str, ...] = (
     "*.npy",
     "*.parquet",
     "*.task",
+    "*.pt",
+    "*.pth",
     ".env",
     "*.env",
 )
