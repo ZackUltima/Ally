@@ -1,8 +1,9 @@
 """Extract keypoints for one downloaded dataset part (D-54, PO decision 3: lite and full).
 
 For each video: run every pose model, save, verify every saved file, and only then delete
-the video (when asked). A video whose files are all saved is skipped on a re-run, so an
-interrupted run can simply be started again.
+the video (when asked). Where the source says how many frames it holds (a zip of frames),
+every model must have read all of them, or the source is kept. A video whose files are all
+saved is skipped on a re-run, so an interrupted run can simply be started again.
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ from pathlib import Path
 from typing import Protocol
 
 from ally_fall.build import keypoint_path
-from ally_fall.datasets import VideoItem, caucafall, gmdcsa24
+from ally_fall.datasets import VideoItem, caucafall, gmdcsa24, le2i, up_fall
 from ally_fall.keypoints import (
     Frame,
     KeypointSeq,
@@ -25,6 +26,8 @@ from ally_fall.keypoints import (
     save_seq,
     verify_saved,
     video_frames,
+    zip_frame_count,
+    zip_frames,
 )
 
 logger = logging.getLogger(__name__)
@@ -51,8 +54,18 @@ class ExtractReport:
     failed: list[tuple[str, str]] = field(default_factory=list)  # (video_id, reason)
 
 
-def _video_frames(item: VideoItem) -> Iterable[Frame]:
+def source_frames(item: VideoItem) -> Iterable[Frame]:
+    """A zip of frames (UP-Fall) or a video file."""
+    if item.source.suffix.lower() == ".zip":
+        return zip_frames(item.source)
     return video_frames(item.source)
+
+
+def source_frame_count(item: VideoItem) -> int | None:
+    """How many frames the source holds, where it says so (a zip of frames); None for videos."""
+    if item.source.suffix.lower() == ".zip":
+        return zip_frame_count(item.source)
+    return None
 
 
 def run(
@@ -63,7 +76,8 @@ def run(
     *,
     delete: bool,
     extractor: Extractor = extract,
-    frames_of: Callable[[VideoItem], Iterable[Frame]] = _video_frames,
+    frames_of: Callable[[VideoItem], Iterable[Frame]] = source_frames,
+    frame_count_of: Callable[[VideoItem], int | None] = source_frame_count,
 ) -> ExtractReport:
     """Extract, save and verify every item with every model; delete sources only when all pass."""
     report = ExtractReport()
@@ -77,6 +91,7 @@ def run(
             continue
         counts: dict[str, int] = {}
         try:
+            expected = frame_count_of(item)
             for name, model_file in models.items():
                 try:
                     seq = extractor(
@@ -85,8 +100,12 @@ def run(
                     )
                 except (OSError, ValueError, RuntimeError) as error:
                     raise ValueError(f"{name}: {error}") from error
-                save_seq(seq, outputs[name])
                 counts[name] = len(seq.frame_times_s)
+                if expected is not None and counts[name] != expected:
+                    raise ValueError(
+                        f"{name}: {counts[name]} frames extracted, {expected} in the source"
+                    )
+                save_seq(seq, outputs[name])
             for name, path in outputs.items():
                 verify_saved(path, counts[name])
         except ValueError as error:
@@ -103,9 +122,12 @@ def run(
     return report
 
 
-ADAPTERS: dict[str, Callable[[Path], list[VideoItem]]] = {
-    gmdcsa24.DATASET: gmdcsa24.items,
-    caucafall.DATASET: caucafall.items,
+# Each adapter gets the download folder and the OmniFall folder (Le2i and UP-Fall read its table).
+ADAPTERS: dict[str, Callable[[Path, Path], list[VideoItem]]] = {
+    gmdcsa24.DATASET: lambda raw, _omnifall: gmdcsa24.items(raw),
+    caucafall.DATASET: lambda raw, _omnifall: caucafall.items(raw),
+    le2i.DATASET: le2i.items,
+    up_fall.DATASET: up_fall.items,
 }
 MODEL_FILES: dict[str, str] = {
     "lite": "pose_landmarker_lite.task",
@@ -126,7 +148,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     data_root = args.data_root.expanduser()
     models_dir = args.models_dir or data_root / "models"
     models = {name: models_dir / file for name, file in MODEL_FILES.items()}
-    items = ADAPTERS[args.dataset](args.raw.expanduser())
+    items = ADAPTERS[args.dataset](args.raw.expanduser(), data_root / "omnifall")
     if items and not all(path.exists() for path in models.values()):
         logger.error("pose model files missing in %s", models_dir)
         return 1

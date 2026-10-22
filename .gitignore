@@ -20,6 +20,8 @@ data/
 *.npy
 *.parquet
 *.task
+*.pt
+*.pth
 
 # Tool scratch
 .superpowers/
