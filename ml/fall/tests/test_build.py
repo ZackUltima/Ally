@@ -1,12 +1,13 @@
 """Tests for the build command (technical plan §2, §10). All data here is made up."""
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
 import pytest
 
-from ally_fall.build import build, keypoint_path, window_features
+from ally_fall.build import EXCLUDED, EXCLUDED_CAMERAS, build, keypoint_path, window_features
 from ally_fall.keypoints import KeypointSeq, save_seq
 from ally_fall.ticks import Segment
 from ally_fall.windows import make_windows
@@ -124,6 +125,46 @@ def test_video_with_label_conflict_skipped(data_root: Path) -> None:
     reasons = [reason for _, video, reason in report.skipped if video == conflicted]
     assert reasons == ["overlapping labels (1.00 s)"]
     assert report.splits["train"].videos == 2
+
+
+def test_excluded_video_skipped_with_reason(data_root: Path) -> None:
+    reason = "person out of the picture"
+    excluded = {("GMDCSA24", "Subject_3/Fall/01", 1): reason}
+    report = build(data_root, ["GMDCSA24"], excluded=excluded)
+    assert ("GMDCSA24", "Subject_3/Fall/01", reason) in report.skipped
+    assert not [s for s in report.skipped if s[1] == "Subject_3/Fall/01" and s[2] == "no keypoints"]
+    assert report.splits["train"].videos == 1
+    assert set(_load(data_root, "train")["subject"].tolist()) == {1}
+
+
+def test_excluded_camera_skipped_with_reason(data_root: Path) -> None:
+    video = "Subject_1/Fall/01"
+    with (data_root / "omnifall" / "labels" / "GMDCSA24.csv").open("a") as file:
+        file.write("".join(f"{video},{s.label},{s.start_s},{s.end_s},1,2,GMDCSA24\n"
+                           for s in SEGMENTS))
+    save_seq(replace(_seq(video, 1), cam=2), keypoint_path(data_root, "lite", "GMDCSA24", video, 2))
+    assert build(data_root, ["GMDCSA24"], excluded_cameras={}).splits["train"].videos == 3
+    report = build(data_root, ["GMDCSA24"], excluded_cameras={("GMDCSA24", 2): "camera out"})
+    assert ("GMDCSA24", video, "camera out") in report.skipped
+    assert report.splits["train"].videos == 2
+
+
+def test_excluded_cameras_is_up_fall_camera_2() -> None:
+    # D-54 (PO 2026-10-22, option A): in UP-Fall camera 2 the pose is often on a seated bystander.
+    assert set(EXCLUDED_CAMERAS) == {("up_fall", 2)}
+    assert "D-54" in EXCLUDED_CAMERAS[("up_fall", 2)]
+
+
+def test_excluded_list_is_up_fall_lying_camera_1() -> None:
+    # D-54 (PO 2026-10-22): camera 1 of Activity 11 (lying) for subjects 5, 11, 12 and 15, where
+    # the person lies at the bottom edge of the picture and a pose is found in only 0-5% of frames.
+    expected = {
+        ("up_fall", f"Subject{s}/Activity11/Trial{t}/Subject{s}Activity11Trial{t}Camera1", 1)
+        for s in (5, 11, 12, 15)
+        for t in (1, 2, 3)
+    }
+    assert set(EXCLUDED) == expected
+    assert all("D-54" in reason for reason in EXCLUDED.values())
 
 
 def test_points_outside_image_marked_missing(data_root: Path) -> None:
