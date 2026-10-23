@@ -13,7 +13,7 @@ import argparse
 import json
 import logging
 import sys
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -42,6 +42,25 @@ LABEL_FILES: dict[str, str] = {
     "up_fall": "up_fall.csv",
 }
 SPLITS: tuple[Split, ...] = ("train", "val", "test")
+
+# Videos left out by name, with the reason reported in BuildReport.skipped. UP-Fall camera 1 of
+# Activity 11 (lying) for subjects 5, 11, 12 and 15: the person lies at the bottom edge of the
+# picture and a pose is found in only 0-5% of frames (D-54, PO 2026-10-22).
+_UP_FALL_OUT_OF_PICTURE = "person out of camera 1's picture, no pose (D-54)"
+EXCLUDED: dict[tuple[str, str, int], str] = {
+    ("up_fall", f"Subject{s}/Activity11/Trial{t}/Subject{s}Activity11Trial{t}Camera1", 1): (
+        _UP_FALL_OUT_OF_PICTURE
+    )
+    for s in (5, 11, 12, 15)
+    for t in (1, 2, 3)
+}
+# Whole cameras left out. UP-Fall camera 2: a seated bystander is in view in most sessions, and
+# once the person is on the floor the pose is often on the bystander until the clip ends (drawn
+# for 6 subjects; 17% of its clips jump; 15.8% of training fall windows). Camera 1 films every
+# trial and is clean (D-54, PO 2026-10-22, option A).
+EXCLUDED_CAMERAS: dict[tuple[str, int], str] = {
+    ("up_fall", 2): "camera 2, pose often on a seated bystander (D-54)",
+}
 
 
 @dataclass
@@ -127,7 +146,13 @@ def _save_split(path: Path, data: _SplitData) -> SplitStats:
     return SplitStats(videos=len(lengths), ticks=int(lengths.sum()), windows=len(window_end))
 
 
-def build(data_root: Path, datasets: Sequence[str], pose_model: str = "lite") -> BuildReport:
+def build(
+    data_root: Path,
+    datasets: Sequence[str],
+    pose_model: str = "lite",
+    excluded: Mapping[tuple[str, str, int], str] = EXCLUDED,
+    excluded_cameras: Mapping[tuple[str, int], str] = EXCLUDED_CAMERAS,
+) -> BuildReport:
     """Build built/<pose_model>/{train,val,test}.npz and the training label counts."""
     omnifall_dir = data_root / "omnifall"
     names = label_names(omnifall_dir)
@@ -149,6 +174,12 @@ def build(data_root: Path, datasets: Sequence[str], pose_model: str = "lite") ->
                 skipped.append((dataset, seq.video_id, "no labels"))
                 continue
             found.add(key)
+            if (dataset, *key) in excluded:
+                skipped.append((dataset, seq.video_id, excluded[(dataset, *key)]))
+                continue
+            if (dataset, seq.cam) in excluded_cameras:
+                skipped.append((dataset, seq.video_id, excluded_cameras[(dataset, seq.cam)]))
+                continue
             try:
                 split = split_of(dataset, seq.subject)
             except KeyError:

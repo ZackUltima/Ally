@@ -1,4 +1,5 @@
-"""The three fall-model candidates (D-13), built after the D-53 spike so they convert to INT8.
+"""The three fall-model candidates (D-13), built after the D-53 spike so they convert to INT8,
+plus the pretrained ST-GCN ("stgcn_pt", D-63; in `pretrained.py`).
 
 Input (B, 3, 30, 33): x, y, visibility; 30 ticks; 33 MediaPipe points. D-53 rules: end
 with a fixed-size average pool, never an adaptive one; the GRU gets an explicit start
@@ -8,13 +9,16 @@ joint axis (the quantiser has no matmul rule). The GRU is reported in float only
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Literal
 
 import numpy as np
 import torch
 from torch import nn
 
-ModelName = Literal["tcn", "gru", "stgcn"]
+from ally_fall.pretrained import PretrainedSTGCN
+
+ModelName = Literal["tcn", "gru", "stgcn", "stgcn_pt"]
 C, T, V = 3, 30, 33
 
 # MediaPipe Pose connections between the 33 landmarks.
@@ -113,7 +117,13 @@ class STGCN(nn.Module):
         return self.fc(self.blocks(x).flatten(1))
 
 
-def build_model(name: ModelName, n_classes: int, hidden: int = 64) -> nn.Module:
+def build_model(
+    name: ModelName, n_classes: int, hidden: int = 64, checkpoint: Path | None = None
+) -> nn.Module:
+    """`checkpoint` is used by "stgcn_pt" only (None = random start); its size is fixed by the
+    checkpoint, so `hidden` does not apply to it."""
+    if name == "stgcn_pt":
+        return PretrainedSTGCN(n_classes, checkpoint)
     models: dict[str, type[TCN] | type[GRUNet] | type[STGCN]] = {
         "tcn": TCN, "gru": GRUNet, "stgcn": STGCN}
     if name not in models:
