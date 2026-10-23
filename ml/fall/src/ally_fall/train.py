@@ -11,21 +11,22 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import os
 import sys
 import tomllib
 from collections.abc import Sequence
-from dataclasses import dataclass, field, fields
+from dataclasses import asdict, dataclass, field, fields, replace
 from pathlib import Path
-from typing import get_args
+from typing import Any, get_args
 
 import numpy as np
 import torch
 from numpy.typing import NDArray
 from torch import nn
 
-from ally_fall.augment import AugmentConfig, augment
+from ally_fall.augment import AugmentConfig, augment_batch
 from ally_fall.baseline import (
     RuleFeatures,
     Thresholds,
@@ -77,6 +78,19 @@ class RunConfig:
     patience: int = 8
     seed: int = 0
     augment: AugmentConfig = field(default_factory=AugmentConfig)
+    checkpoint: str = ""  # path under the data root; empty = random start (stgcn_pt only)
+    backbone_lr: float | None = None  # None = one learning rate for every layer (D-62 decision 5)
+    amp: bool = True  # mixed precision on a CUDA GPU (speed-up, PO 2026-10-22); ignored on CPU
+
+
+def param_groups(model: nn.Module, lr: float, backbone_lr: float | None) -> list[dict[str, Any]]:
+    """One AdamW group, or two: every layer but the head at `backbone_lr`, the head (`fc`) at
+    `lr` (fine-tuning a pretrained model, D-62 decision 5)."""
+    if backbone_lr is None:
+        return [{"params": list(model.parameters()), "lr": lr}]
+    head = [p for n, p in model.named_parameters() if n.startswith("fc.")]
+    body = [p for n, p in model.named_parameters() if not n.startswith("fc.")]
+    return [{"params": body, "lr": backbone_lr}, {"params": head, "lr": lr}]
 
 
 def load_config(path: Path) -> RunConfig:
@@ -163,6 +177,54 @@ def _predict(model: nn.Module, split: BuiltSplit, device: str, chunk: int = 2048
     return np.concatenate(out) if out else np.zeros(0, dtype=np.int64)
 
 
+def use_amp(cfg: RunConfig, device: str) -> bool:
+    """Mixed precision (float16 on the GPU, float32 weights) only where it helps: CUDA."""
+    return cfg.amp and device.startswith("cuda")
+
+
+@dataclass(frozen=True)
+class _Progress:
+    epoch: int = 0  # last finished epoch
+    best_f1: float = -1.0
+    best_epoch: int = 0
+    waited: int = 0
+    stopped: bool = False  # early stopping already reached
+
+
+def _save_state(path: Path, cfg: RunConfig, progress: _Progress, model: nn.Module,
+                optimiser: torch.optim.Optimizer, scaler: torch.amp.GradScaler,
+                rng: np.random.Generator, device: str) -> None:
+    """Everything needed to continue after the last finished epoch, written atomically."""
+    state: dict[str, Any] = {
+        "config": asdict(cfg), "progress": asdict(progress), "model": model.state_dict(),
+        "optimiser": optimiser.state_dict(), "scaler": scaler.state_dict(),
+        "rng": rng.bit_generator.state, "torch_rng": torch.get_rng_state(),
+    }
+    if device.startswith("cuda"):
+        state["cuda_rng"] = torch.cuda.get_rng_state(torch.device(device))
+    tmp = path.with_suffix(".tmp")
+    torch.save(state, tmp)
+    tmp.replace(path)
+
+
+def _resume(path: Path, cfg: RunConfig, model: nn.Module, optimiser: torch.optim.Optimizer,
+            scaler: torch.amp.GradScaler, rng: np.random.Generator, device: str) -> _Progress:
+    """Restore a run interrupted after a finished epoch, so it ends exactly as if it never was."""
+    state = torch.load(path, map_location=device, weights_only=True)
+    if state["config"] != asdict(cfg):
+        raise ValueError(f"{path} was saved for a different config; move it to start afresh")
+    model.load_state_dict(state["model"])
+    optimiser.load_state_dict(state["optimiser"])
+    scaler.load_state_dict(state["scaler"])
+    rng.bit_generator.state = state["rng"]
+    torch.set_rng_state(state["torch_rng"].cpu())
+    if "cuda_rng" in state and device.startswith("cuda"):
+        torch.cuda.set_rng_state(state["cuda_rng"].cpu(), torch.device(device))
+    progress = _Progress(**state["progress"])
+    logger.info("%s: resuming after epoch %d", cfg.run_id, progress.epoch)
+    return progress
+
+
 def train(cfg: RunConfig, data_root: Path, out: Path, device: str | None = None) -> RunResult:
     # cuBLAS reads this when CUDA first starts; it makes CUDA matrix products repeatable.
     os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
@@ -175,33 +237,45 @@ def train(cfg: RunConfig, data_root: Path, out: Path, device: str | None = None)
     fall = fall_classes(cfg.label_set, names)
     counts = np.bincount(tr.y, minlength=len(classes))
     weights = torch.from_numpy(class_weights(counts, cfg.beta)).to(device)
-    model = build_model(cfg.model, len(classes), cfg.hidden).to(device)
-    optimiser = torch.optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
+    checkpoint = data_root / cfg.checkpoint if cfg.checkpoint else None
+    model = build_model(cfg.model, len(classes), cfg.hidden, checkpoint).to(device)
+    optimiser = torch.optim.AdamW(param_groups(model, cfg.lr, cfg.backbone_lr), lr=cfg.lr,
+                                  weight_decay=cfg.weight_decay)
     loss_fn = nn.CrossEntropyLoss(weight=weights)
+    amp = use_amp(cfg, device)
+    scaler = torch.amp.GradScaler("cuda", enabled=amp)
     out.mkdir(parents=True, exist_ok=True)
-    best_f1, best_epoch, waited = -1.0, 0, 0
-    for epoch in range(1, cfg.max_epochs + 1):
+    progress = _Progress()
+    state_file = out / "last.pt"
+    if state_file.exists():
+        progress = _resume(state_file, cfg, model, optimiser, scaler, rng, device)
+    for epoch in range(progress.epoch + 1, cfg.max_epochs + 1):
+        if progress.stopped:
+            break
         model.train()
         order = rng.permutation(len(tr.window_end))
         for start in range(0, len(order), cfg.batch):
             idx = order[start:start + cfg.batch]
-            windows = np.stack([augment(w, rng, cfg.augment) for w in window_tensor(tr, idx)])
+            windows = augment_batch(window_tensor(tr, idx), rng, cfg.augment)
             if len(idx) < 2:  # batch norm needs two windows
                 continue
             optimiser.zero_grad()
-            loss = loss_fn(model(torch.from_numpy(windows).to(device)),
-                           torch.from_numpy(tr.y[idx]).to(device))
-            loss.backward()
-            optimiser.step()
+            with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=amp):
+                loss = loss_fn(model(torch.from_numpy(windows).to(device)),
+                               torch.from_numpy(tr.y[idx]).to(device))
+            scaler.scale(loss).backward()
+            scaler.step(optimiser)
+            scaler.update()
         f1 = binary(np.isin(_predict(model, va, device), fall), np.isin(va.y, fall)).f1
         logger.info("%s epoch %d: validation fall-class F1 %.4f", cfg.run_id, epoch, f1)
-        if f1 > best_f1:
-            best_f1, best_epoch, waited = f1, epoch, 0
+        if f1 > progress.best_f1:
+            progress = replace(progress, best_f1=f1, best_epoch=epoch, waited=0)
             torch.save(model.state_dict(), out / "best.pt")
         else:
-            waited += 1
-            if waited >= cfg.patience:
-                break
+            progress = replace(progress, waited=progress.waited + 1)
+        progress = replace(progress, epoch=epoch, stopped=progress.waited >= cfg.patience)
+        _save_state(state_file, cfg, progress, model, optimiser, scaler, rng, device)
+    best_epoch = progress.best_epoch
     model.load_state_dict(torch.load(out / "best.pt", map_location=device))
     pred = _predict(model, va, device)
     scores = score(pred, np.isin(pred, fall), va, fall, classes)
@@ -253,6 +327,33 @@ def results_markdown(cfg: RunConfig, r: RunResult) -> str:
     return "\n".join(lines) + "\n"
 
 
+def results_json(cfg: RunConfig, r: RunResult) -> dict[str, Any]:
+    """The same results as the table, as data (read by the beta pick and the F2 summary)."""
+    return {
+        "run_id": cfg.run_id, "config": asdict(cfg), "best_epoch": r.best_epoch,
+        **_scores_json(r), "per_label": r.per_label, "train_counts": r.train_counts,
+    }
+
+
+def _scores_json(s: Scores) -> dict[str, Any]:
+    b = s.val
+    return {"val": {"tp": b.tp, "fp": b.fp, "fn": b.fn, "tn": b.tn, "recall": b.recall,
+                    "precision": b.precision, "f1": b.f1, "specificity": b.specificity},
+            "intervals": {k: list(v) for k, v in s.intervals.items()},
+            "events": asdict(s.events)}
+
+
+def baseline_json(r: BaselineResult, pose_model: str) -> dict[str, Any]:
+    """The baseline's results as data, for the F2 summary (no config: not a training run)."""
+    return {"pose_model": pose_model, "thresholds": asdict(r.thresholds), **_scores_json(r)}
+
+
+def _write_results(results_dir: Path, cfg: RunConfig, r: RunResult) -> None:
+    (results_dir / f"{cfg.run_id}.json").write_text(
+        json.dumps(results_json(cfg, r), indent=2) + "\n", encoding="utf-8")
+    (results_dir / f"{cfg.run_id}.md").write_text(results_markdown(cfg, r), encoding="utf-8")
+
+
 def baseline_markdown(r: BaselineResult, pose_model: str) -> str:
     return "\n".join([
         "# Threshold baseline", "",
@@ -261,11 +362,34 @@ def baseline_markdown(r: BaselineResult, pose_model: str) -> str:
         *_measures(r)]) + "\n"
 
 
+def run_queue(folder: Path, data_root: Path, results_dir: Path) -> int:
+    """Run every config in `folder` in name order. A run whose results table exists is skipped,
+    and an interrupted run resumes after its last finished epoch, so the queue can simply be
+    started again after any stop. A failed run is logged and the queue moves on; returns 1 if
+    any run failed."""
+    failed = 0
+    for path in sorted(folder.glob("*.toml")):
+        try:
+            cfg = load_config(path)
+            target = results_dir / f"{cfg.run_id}.md"
+            if target.exists():
+                logger.info("%s: results exist, skipped", cfg.run_id)
+                continue
+            run = train(cfg, data_root, data_root / "runs" / cfg.run_id)
+            _write_results(results_dir, cfg, run)  # the table last: it marks the run done
+            logger.info("results written to %s", target)
+        except (OSError, ValueError, KeyError, RuntimeError) as error:
+            logger.error("run %s failed: %s", path.name, error)
+            failed += 1
+    return 1 if failed else 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     parser = argparse.ArgumentParser(description="Train a fall model or fit the baseline")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--config", type=Path)
+    group.add_argument("--queue", type=Path, help="a folder of configs, run in name order")
     group.add_argument("--baseline", action="store_true")
     parser.add_argument("--data-root", type=Path, required=True)
     parser.add_argument("--pose-model", default="lite", help="for --baseline")
@@ -273,14 +397,21 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     data_root = args.data_root.expanduser()
     args.results_dir.mkdir(parents=True, exist_ok=True)
+    if args.queue:
+        return run_queue(args.queue, data_root, args.results_dir)
     try:
         if args.baseline:
             result = run_baseline(data_root, args.pose_model)
             text, name = baseline_markdown(result, args.pose_model), f"baseline-{args.pose_model}"
+            (args.results_dir / f"{name}.json").write_text(
+                json.dumps(baseline_json(result, args.pose_model), indent=2) + "\n",
+                encoding="utf-8")
         else:
             cfg = load_config(args.config)
             run = train(cfg, data_root, data_root / "runs" / cfg.run_id)
-            text, name = results_markdown(cfg, run), cfg.run_id
+            _write_results(args.results_dir, cfg, run)
+            logger.info("results written to %s", args.results_dir / f"{cfg.run_id}.md")
+            return 0
     except (OSError, ValueError, KeyError) as error:
         logger.error("run failed: %s", error)
         return 1

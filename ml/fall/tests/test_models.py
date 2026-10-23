@@ -39,6 +39,17 @@ def test_gru_uses_explicit_start_state_and_both_outputs(monkeypatch: pytest.Monk
         assert torch.allclose(model.head(out, h_n), model.fc((out[:, -1] + h_n[-1]) * 0.5))
 
 
+def test_build_model_pretrained_candidate() -> None:
+    model = build_model("stgcn_pt", 5, hidden=16).eval()  # hidden is fixed by the checkpoint
+    assert type(model).__name__ == "PretrainedSTGCN"
+    assert model(torch.zeros(2, 3, 30, 33)).shape == (2, 5)
+
+
+def test_build_model_unknown_name() -> None:
+    with pytest.raises(ValueError, match="lstm"):
+        build_model("lstm", 5)  # type: ignore[arg-type]
+
+
 @pytest.mark.parametrize("name", NAMES)
 def test_exportable(name: ModelName) -> None:
     model = build_model(name, 5, hidden=16).eval()

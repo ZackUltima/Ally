@@ -6,9 +6,15 @@ import pytest
 from numpy.typing import NDArray
 
 from ally_fall.augment import (
+    EDGES,
     LEFT_RIGHT,
     AugmentConfig,
+    BatchDraw,
+    _settle,
+    apply_batch,
     augment,
+    augment_batch,
+    draw_batch,
     dropout,
     edge_cut,
     mirror,
@@ -126,6 +132,67 @@ def test_same_seed_same_result() -> None:
     a = augment(w, np.random.default_rng(7), AugmentConfig())
     b = augment(w, np.random.default_rng(7), AugmentConfig())
     np.testing.assert_array_equal(a, b)
+
+
+def _batch(n: int = 12, seed: int = 0) -> NDArray[np.float32]:
+    b = np.stack([_window(seed + i) for i in range(n)])
+    b[3, :, :, 23:25] = 0.0  # one window without visible hips: scale leaves it unchanged
+    b[5, 0:2, :, 0] = 0.98  # a point that scaling pushes outside the picture
+    return b
+
+
+def _one_by_one(w: Window, d: BatchDraw, i: int, aspect: float) -> Window:
+    """The same draw applied with the one-window functions, in augment's order."""
+    out = mirror(w) if d.mirror[i] else w.copy()
+    out = scale(out, float(d.rx[i]), float(d.ry[i]))
+    if d.angle is not None:
+        out = rotate(out, float(d.angle[i]), aspect)
+    if d.noise is not None:
+        moved = out.copy()
+        moved[0:2] = out[0:2] + d.noise[i]
+        out = _settle(moved, out[2] == 0)
+    out = _settle(out.copy(), (out[2] == 0) | d.drop[i])
+    if d.edge[i]:
+        out = edge_cut(out, EDGES[int(d.edge_side[i])], float(d.edge_at[i]))
+    return out
+
+
+@pytest.mark.parametrize("cfg", [
+    AugmentConfig(), AugmentConfig(mirror_p=0.5, rotate=0.3, noise_sd=0.01, edge_p=0.8)])
+def test_batch_equals_one_window_functions(cfg: AugmentConfig) -> None:
+    b = _batch()
+    d = draw_batch(len(b), b.shape[2:], np.random.default_rng(4), cfg)
+    assert d.mirror.any() and not d.mirror.all() and d.edge.any()
+    out = apply_batch(b, d, 16 / 9)
+    for i in range(len(b)):
+        expected = _one_by_one(b[i], d, i, 16 / 9)
+        np.testing.assert_array_equal(out[i][2] == 0, expected[2] == 0)
+        np.testing.assert_allclose(out[i], expected, atol=1e-6)
+
+
+def test_batch_missing_stays_missing() -> None:
+    b = _batch()
+    out = augment_batch(b, np.random.default_rng(5), AugmentConfig(mirror_p=0.0))
+    assert np.all(np.moveaxis(out, 1, -1)[b[:, 2] == 0] == 0.0)  # (B, T, V, 3) at missing points
+
+
+def test_batch_draw_rates() -> None:
+    cfg = AugmentConfig()
+    d = draw_batch(20000, (30, 33), np.random.default_rng(6), cfg)
+    assert abs(d.mirror.mean() - cfg.mirror_p) < 0.02
+    assert abs(d.edge.mean() - cfg.edge_p) < 0.02
+    assert abs(d.drop.mean() - cfg.dropout_p) < 0.002
+    assert np.abs(d.rx).max() <= cfg.scale and np.abs(d.ry).max() <= cfg.scale
+    assert d.edge_at.max() <= cfg.edge_max and set(np.unique(d.edge_side)) == {0, 1, 2, 3}
+    assert d.angle is None and d.noise is None  # off by default (F3 ablation switches)
+
+
+def test_batch_same_seed_same_result() -> None:
+    b = _batch()
+    a = augment_batch(b, np.random.default_rng(9), AugmentConfig())
+    c = augment_batch(b, np.random.default_rng(9), AugmentConfig())
+    np.testing.assert_array_equal(a, c)
+    assert a.dtype == np.float32 and a.shape == b.shape
 
 
 def test_defaults_have_no_rotation_or_noise() -> None:

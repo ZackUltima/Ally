@@ -1,9 +1,11 @@
+import json
 import shutil
 from pathlib import Path
 
 import numpy as np
 import pytest
 import torch
+from torch import nn
 
 import ally_fall.train as train_module
 from ally_fall.augment import AugmentConfig
@@ -87,16 +89,135 @@ def test_train_never_opens_test_split(data_root: Path, tmp_path: Path) -> None:
 def test_validation_is_never_augmented(data_root: Path, tmp_path: Path,
                                        monkeypatch: pytest.MonkeyPatch) -> None:
     calls = {"n": 0}
-    real = train_module.augment
+    real = train_module.augment_batch
 
-    def counting(*args: object, **kwargs: object) -> np.ndarray:
-        calls["n"] += 1
-        return real(*args, **kwargs)  # type: ignore[arg-type]
+    def counting(windows: np.ndarray, *args: object, **kwargs: object) -> np.ndarray:
+        calls["n"] += len(windows)
+        return real(windows, *args, **kwargs)  # type: ignore[arg-type]
 
-    monkeypatch.setattr(train_module, "augment", counting)
+    monkeypatch.setattr(train_module, "augment_batch", counting)
     train(_cfg(max_epochs=1), data_root, tmp_path / "out", device="cpu")
     train_windows = int(np.load(data_root / "built" / "lite" / "train.npz")["window_end"].size)
-    assert calls["n"] == train_windows  # one call per training window, none for validation
+    assert calls["n"] == train_windows  # every training window once, no validation window
+
+
+def test_load_config_accepts_checkpoint_keys(tmp_path: Path) -> None:
+    path = tmp_path / "c.toml"
+    path.write_text('run_id = "p"\nmodel = "stgcn_pt"\nlabel_set = "groups5"\nbeta = 0.99\n'
+                    'checkpoint = "models/stgcn_pt/x.pth"\nbackbone_lr = 1e-4\n')
+    cfg = load_config(path)
+    assert (cfg.checkpoint, cfg.backbone_lr) == ("models/stgcn_pt/x.pth", 1e-4)
+    assert (_cfg().checkpoint, _cfg().backbone_lr) == ("", None)
+
+
+def test_backbone_lr_param_groups() -> None:
+    model = nn.Sequential()
+    model.add_module("body", nn.Linear(3, 4))
+    model.add_module("fc", nn.Linear(4, 2))
+    two = train_module.param_groups(model, lr=1e-3, backbone_lr=1e-4)
+    assert [g["lr"] for g in two] == [1e-4, 1e-3]
+    assert [len(g["params"]) for g in two] == [2, 2]
+    assert two[1]["params"] == list(model.fc.parameters())
+    one = train_module.param_groups(model, lr=1e-3, backbone_lr=None)
+    assert len(one) == 1 and one[0]["lr"] == 1e-3 and len(one[0]["params"]) == 4
+
+
+def test_train_pretrained_from_checkpoint(data_root: Path, tmp_path: Path) -> None:
+    from ally_fall.pretrained import PretrainedSTGCN
+
+    torch.manual_seed(3)
+    source = PretrainedSTGCN(60)
+    sd = {("cls_head." if k.startswith("fc.") else "backbone.") + k: v
+          for k, v in source.state_dict().items()}
+    (data_root / "models").mkdir()
+    torch.save({"state_dict": sd}, data_root / "models" / "ckpt.pth")
+    cfg = _cfg(model="stgcn_pt", checkpoint="models/ckpt.pth", backbone_lr=1e-4, max_epochs=1)
+    result = train(cfg, data_root, tmp_path / "pt", device="cpu")
+    assert 0.0 <= result.val.f1 <= 1.0 and result.best_epoch == 1
+    saved = torch.load(tmp_path / "pt" / "best.pt")
+    assert saved["fc.weight"].shape[0] == 16  # the new head, omnifall16
+
+
+def test_resume_after_interruption_matches_uninterrupted(
+        data_root: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    cfg = _cfg(max_epochs=3, patience=3)
+    full = train(cfg, data_root, tmp_path / "full", device="cpu")
+    real = train_module._predict
+    calls = {"n": 0}
+
+    def killed_in_epoch_2(*args: object, **kwargs: object) -> np.ndarray:
+        calls["n"] += 1
+        if calls["n"] == 2:  # epoch 2 trained, killed before its state was saved
+            raise KeyboardInterrupt
+        return real(*args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(train_module, "_predict", killed_in_epoch_2)
+    with pytest.raises(KeyboardInterrupt):
+        train(cfg, data_root, tmp_path / "cut", device="cpu")
+    monkeypatch.setattr(train_module, "_predict", real)
+    trained = {"n": 0}
+    real_aug = train_module.augment_batch
+
+    def counting(windows: np.ndarray, *args: object, **kwargs: object) -> np.ndarray:
+        trained["n"] += len(windows)
+        return real_aug(windows, *args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(train_module, "augment_batch", counting)
+    resumed = train(cfg, data_root, tmp_path / "cut", device="cpu")
+    per_epoch = int(np.load(data_root / "built" / "lite" / "train.npz")["window_end"].size)
+    assert trained["n"] == 2 * per_epoch  # epochs 2 and 3 only: epoch 1 is not redone
+    assert resumed.val == full.val and resumed.best_epoch == full.best_epoch
+    wa, wb = torch.load(tmp_path / "full" / "best.pt"), torch.load(tmp_path / "cut" / "best.pt")
+    assert all(torch.equal(wa[k], wb[k]) for k in wa)
+
+
+def test_finished_run_is_not_trained_again(data_root: Path, tmp_path: Path,
+                                           monkeypatch: pytest.MonkeyPatch) -> None:
+    first = train(_cfg(), data_root, tmp_path / "out", device="cpu")
+    monkeypatch.setattr(train_module, "augment_batch", lambda *a, **k: pytest.fail("trained"))
+    again = train(_cfg(), data_root, tmp_path / "out", device="cpu")
+    assert again.val == first.val and again.best_epoch == first.best_epoch
+
+
+def test_resume_refuses_a_different_config(data_root: Path, tmp_path: Path) -> None:
+    train(_cfg(), data_root, tmp_path / "out", device="cpu")
+    with pytest.raises(ValueError, match="different config"):
+        train(_cfg(lr=1e-2), data_root, tmp_path / "out", device="cpu")
+
+
+def test_mixed_precision_only_on_cuda() -> None:
+    assert train_module.use_amp(_cfg(), "cuda") and train_module.use_amp(_cfg(), "cuda:0")
+    assert not train_module.use_amp(_cfg(), "cpu")
+    assert not train_module.use_amp(_cfg(amp=False), "cuda")
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="needs a CUDA GPU (laptop only)")
+def test_trains_with_mixed_precision_on_gpu(data_root: Path, tmp_path: Path) -> None:
+    result = train(_cfg(max_epochs=1), data_root, tmp_path / "gpu", device="cuda")
+    assert 0.0 <= result.val.f1 <= 1.0
+
+
+def test_queue_runs_each_config_once(data_root: Path, tmp_path: Path) -> None:
+    queue, results = tmp_path / "queue", tmp_path / "results"
+    queue.mkdir()
+    for run_id in ("a", "b"):
+        (queue / f"{run_id}.toml").write_text(
+            f'run_id = "{run_id}"\nmodel = "tcn"\nlabel_set = "groups5"\nbeta = 0.9\n'
+            'hidden = 8\nbatch = 32\nmax_epochs = 1\n')
+    results.mkdir()
+    (results / "a.md").write_text("done before", encoding="utf-8")
+    args = ["--queue", str(queue), "--data-root", str(data_root), "--results-dir", str(results)]
+    assert train_module.main(args) == 0
+    assert (results / "a.md").read_text(encoding="utf-8") == "done before"  # skipped
+    assert "| run_id | b |" in (results / "b.md").read_text(encoding="utf-8")
+    saved = json.loads((results / "b.json").read_text(encoding="utf-8"))
+    assert saved["run_id"] == "b" and saved["config"]["model"] == "tcn"
+    assert 0.0 <= saved["val"]["f1"] <= 1.0 and saved["best_epoch"] == 1
+    assert {"recall", "precision", "specificity", "tp", "fp", "fn", "tn"} <= set(saved["val"])
+    assert set(saved["intervals"]) == {"recall", "precision", "f1"} and "events" in saved
+    (queue / "c.toml").write_text(
+        'run_id = "c"\nmodel = "lstm"\nlabel_set = "groups5"\nbeta = 0.9\n')
+    assert train_module.main(args) == 1  # a bad config is reported; the others are not redone
 
 
 def test_same_seed_same_result(data_root: Path, tmp_path: Path) -> None:
@@ -127,6 +248,11 @@ def test_main_baseline_and_config(data_root: Path, tmp_path: Path) -> None:
     assert train_module.main(["--baseline", "--data-root", str(data_root),
                               "--results-dir", str(results)]) == 0
     assert "Threshold baseline" in (results / "baseline-lite.md").read_text(encoding="utf-8")
+    data = json.loads((results / "baseline-lite.json").read_text(encoding="utf-8"))
+    assert data["pose_model"] == "lite" and 0.0 <= data["val"]["f1"] <= 1.0
+    assert set(data["val"]) == {"tp", "fp", "fn", "tn", "recall", "precision", "f1",
+                                "specificity"}
+    assert len(data["intervals"]["f1"]) == 2 and "speed" in data["thresholds"]
     config = tmp_path / "c.toml"
     config.write_text('run_id = "m"\nmodel = "stgcn"\nlabel_set = "groups5"\nbeta = 0.9\n'
                       'hidden = 8\nbatch = 32\nmax_epochs = 1\n')
