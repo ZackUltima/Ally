@@ -1,0 +1,21 @@
+[versions]
+# 2026-10-08, at least 2 weeks old: the newest Kotlin of that age (D-64).
+kotlin = "2.4.21"
+# 2026-09-29: line coverage gate of 80% (D-52, CLAUDE.md section 4).
+kover = "0.9.11"
+# 2026-03-12: runs ktlint from Gradle (D-52).
+ktlintGradle = "14.2.0"
+# 2025-11-14: the ktlint version the plugin runs (D-52).
+ktlint = "1.8.0"
+# D-52 names JUnit 4.
+junit = "4.13.2"
+# Gradle itself (9.8.1, 2026-10-07) is pinned in gradle/wrapper/gradle-wrapper.properties: AGP 9.4.1,
+# the newest AGP the installed Android Studio supports, needs Gradle 9.6.0 or later (D-64).
+
+[libraries]
+junit = { module = "junit:junit", version.ref = "junit" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }

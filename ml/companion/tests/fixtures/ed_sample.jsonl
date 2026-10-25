@@ -1,0 +1,7 @@
+{"conv_id": "hit:1_conv:2", "utterance_idx": 2, "context": "sentimental", "prompt": "Prompt one_comma_ made up.", "speaker_idx": 1, "utterance": "Line B1_comma_ second part.", "selfeval": "5|5|5_2|2|5", "tags": ""}
+{"conv_id": "hit:1_conv:2", "utterance_idx": 1, "context": "sentimental", "prompt": "Prompt one_comma_ made up.", "speaker_idx": 0, "utterance": "Line A1.", "selfeval": "5|5|5_2|2|5", "tags": ""}
+{"conv_id": "hit:1_conv:2", "utterance_idx": 3, "context": "sentimental", "prompt": "Prompt one_comma_ made up.", "speaker_idx": 0, "utterance": "Line A2.", "selfeval": "5|5|5_2|2|5", "tags": ""}
+{"conv_id": "hit:3_conv:6", "utterance_idx": 1, "context": "afraid", "prompt": "Prompt two.", "speaker_idx": 7, "utterance": "Line C1.", "selfeval": "", "tags": ""}
+{"conv_id": "hit:3_conv:6", "utterance_idx": 2, "context": "afraid", "prompt": "Prompt two.", "speaker_idx": 8, "utterance": "Line D1.", "selfeval": "", "tags": ""}
+{"conv_id": "hit:4_conv:8", "utterance_idx": 1, "context": "joyful", "prompt": "Prompt three.", "speaker_idx": 2, "utterance": "Line E1.", "selfeval": "", "tags": ""}
+{"conv_id": "hit:4_conv:8", "utterance_idx": 2, "context": "joyful", "prompt": "Prompt three.", "speaker_idx": 2, "utterance": "Line E2.", "selfeval": "", "tags": ""}

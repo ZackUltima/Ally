@@ -1,0 +1,14 @@
+# Licence register for companion dialogue sources (T49, D-19, D-17 (a)). Generators join in CM1b.
+# synthetic: true when a model wrote the dialogues; variants: which training sets may use them.
+
+[soda]
+licence = "CC BY 4.0"  # dataset card, re-opened 2026-10-19 [140]
+url = "https://huggingface.co/datasets/allenai/soda"
+variants = ["fyp", "clean"]
+synthetic = true  # distilled from a large language model [139]
+
+[empathetic_dialogues]
+licence = "CC BY-NC 4.0"  # dataset card, re-opened 2026-10-19 [136]
+url = "https://huggingface.co/datasets/facebook/empathetic_dialogues"
+variants = ["fyp"]  # non-commercial: FYP variant only, never "clean" (D-17 (a))
+synthetic = false  # crowdsourced [135][136]
