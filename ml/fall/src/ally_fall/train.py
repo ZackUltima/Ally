@@ -36,6 +36,7 @@ from ally_fall.baseline import (
 )
 from ally_fall.data import (
     BuiltSplit,
+    hip_centred,
     load_split,
     person_of,
     window_tensor,
@@ -81,6 +82,13 @@ class RunConfig:
     checkpoint: str = ""  # path under the data root; empty = random start (stgcn_pt only)
     backbone_lr: float | None = None  # None = one learning rate for every layer (D-62 decision 5)
     amp: bool = True  # mixed precision on a CUDA GPU (speed-up, PO 2026-10-22); ignored on CPU
+    hip_centred: bool = False  # F3b ablation: move each window to its mean visible hip (D-55)
+    window_ticks: int = 30  # F3b ablation: the last N ticks of each built window (21 = 2.1 s)
+
+
+def model_input(windows: NDArray[np.float32], cfg: RunConfig) -> NDArray[np.float32]:
+    """The windows as the model sees them: unchanged, or hip-centred when the config says so."""
+    return hip_centred(windows) if cfg.hip_centred else windows
 
 
 def param_groups(model: nn.Module, lr: float, backbone_lr: float | None) -> list[dict[str, Any]]:
@@ -165,14 +173,15 @@ def score(pred: NDArray[np.int64] | None, fall_pred: NDArray[np.bool_], split: B
     )
 
 
-def _predict(model: nn.Module, split: BuiltSplit, device: str, chunk: int = 2048
-             ) -> NDArray[np.int64]:
+def _predict(model: nn.Module, split: BuiltSplit, device: str, cfg: RunConfig,
+             chunk: int = 2048) -> NDArray[np.int64]:
     model.eval()
     out: list[NDArray[np.int64]] = []
     with torch.no_grad():
         for start in range(0, len(split.window_end), chunk):
             idx = np.arange(start, min(start + chunk, len(split.window_end)))
-            x = torch.from_numpy(window_tensor(split, idx)).to(device)
+            windows = model_input(window_tensor(split, idx, cfg.window_ticks), cfg)
+            x = torch.from_numpy(windows).to(device)
             out.append(model(x).argmax(1).cpu().numpy().astype(np.int64))
     return np.concatenate(out) if out else np.zeros(0, dtype=np.int64)
 
@@ -238,7 +247,8 @@ def train(cfg: RunConfig, data_root: Path, out: Path, device: str | None = None)
     counts = np.bincount(tr.y, minlength=len(classes))
     weights = torch.from_numpy(class_weights(counts, cfg.beta)).to(device)
     checkpoint = data_root / cfg.checkpoint if cfg.checkpoint else None
-    model = build_model(cfg.model, len(classes), cfg.hidden, checkpoint).to(device)
+    model = build_model(cfg.model, len(classes), cfg.hidden, checkpoint, cfg.window_ticks)
+    model = model.to(device)
     optimiser = torch.optim.AdamW(param_groups(model, cfg.lr, cfg.backbone_lr), lr=cfg.lr,
                                   weight_decay=cfg.weight_decay)
     loss_fn = nn.CrossEntropyLoss(weight=weights)
@@ -256,7 +266,8 @@ def train(cfg: RunConfig, data_root: Path, out: Path, device: str | None = None)
         order = rng.permutation(len(tr.window_end))
         for start in range(0, len(order), cfg.batch):
             idx = order[start:start + cfg.batch]
-            windows = augment_batch(window_tensor(tr, idx), rng, cfg.augment)
+            windows = augment_batch(window_tensor(tr, idx, cfg.window_ticks), rng, cfg.augment)
+            windows = model_input(windows, cfg)
             if len(idx) < 2:  # batch norm needs two windows
                 continue
             optimiser.zero_grad()
@@ -266,7 +277,7 @@ def train(cfg: RunConfig, data_root: Path, out: Path, device: str | None = None)
             scaler.scale(loss).backward()
             scaler.step(optimiser)
             scaler.update()
-        f1 = binary(np.isin(_predict(model, va, device), fall), np.isin(va.y, fall)).f1
+        f1 = binary(np.isin(_predict(model, va, device, cfg), fall), np.isin(va.y, fall)).f1
         logger.info("%s epoch %d: validation fall-class F1 %.4f", cfg.run_id, epoch, f1)
         if f1 > progress.best_f1:
             progress = replace(progress, best_f1=f1, best_epoch=epoch, waited=0)
@@ -277,7 +288,7 @@ def train(cfg: RunConfig, data_root: Path, out: Path, device: str | None = None)
         _save_state(state_file, cfg, progress, model, optimiser, scaler, rng, device)
     best_epoch = progress.best_epoch
     model.load_state_dict(torch.load(out / "best.pt", map_location=device))
-    pred = _predict(model, va, device)
+    pred = _predict(model, va, device, cfg)
     scores = score(pred, np.isin(pred, fall), va, fall, classes)
     return RunResult(**scores.__dict__, best_epoch=best_epoch,
                      train_counts={c: int(n) for c, n in zip(classes, counts, strict=True)})

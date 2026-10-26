@@ -19,6 +19,7 @@ from collections.abc import Sequence
 from dataclasses import fields
 from pathlib import Path
 
+from ally_fall.augment import AugmentConfig
 from ally_fall.labels import LabelSet
 from ally_fall.models import ModelName
 from ally_fall.summary import (
@@ -94,10 +95,18 @@ def _toml_value(value: object) -> str:
     return repr(value)
 
 
+# Added in F3b: left out of a config while at their defaults, so F2 configs read as they did.
+_OMIT_WHEN_DEFAULT: frozenset[str] = frozenset({"hip_centred", "window_ticks"})
+
+
 def write_config(cfg: RunConfig, path: Path) -> None:
     """One TOML file per run (T4); unset optional values and the default augmentation omitted."""
     lines = [f"{f.name} = {_toml_value(getattr(cfg, f.name))}" for f in fields(cfg)
-             if f.name != "augment" and getattr(cfg, f.name) is not None]
+             if f.name != "augment" and getattr(cfg, f.name) is not None
+             and not (f.name in _OMIT_WHEN_DEFAULT and getattr(cfg, f.name) == f.default)]
+    if cfg.augment != AugmentConfig():  # the F3b ablations change it
+        lines += ["", "[augment]", *(f"{f.name} = {_toml_value(getattr(cfg.augment, f.name))}"
+                                     for f in fields(cfg.augment))]
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 

@@ -40,20 +40,24 @@ def norm_adjacency() -> torch.Tensor:
 
 
 class TCN(nn.Module):
-    """The 99 numbers of each tick are channels; convolutions run over time only."""
+    """The 99 numbers of each tick are channels; convolutions run over time only.
 
-    def __init__(self, n_classes: int, hidden: int = 64) -> None:
+    `ticks` is the window length; the final pool is exactly that long, never adaptive (D-53).
+    """
+
+    def __init__(self, n_classes: int, hidden: int = 64, ticks: int = T) -> None:
         super().__init__()
+        self.ticks = ticks
         self.net = nn.Sequential(
             nn.Conv2d(C * V, hidden, (5, 1), padding=(2, 0)), nn.BatchNorm2d(hidden), nn.ReLU(),
             nn.Conv2d(hidden, hidden, (5, 1), padding=(4, 0), dilation=(2, 1)),
             nn.BatchNorm2d(hidden), nn.ReLU(),
-            nn.AvgPool2d((T, 1)),
+            nn.AvgPool2d((ticks, 1)),
         )
         self.fc = nn.Linear(hidden, n_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x.permute(0, 1, 3, 2).reshape(-1, C * V, T, 1)
+        x = x.permute(0, 1, 3, 2).reshape(-1, C * V, self.ticks, 1)
         return self.fc(self.net(x).flatten(1))
 
 
@@ -118,10 +122,19 @@ class STGCN(nn.Module):
 
 
 def build_model(
-    name: ModelName, n_classes: int, hidden: int = 64, checkpoint: Path | None = None
+    name: ModelName,
+    n_classes: int,
+    hidden: int = 64,
+    checkpoint: Path | None = None,
+    ticks: int = T,
 ) -> nn.Module:
     """`checkpoint` is used by "stgcn_pt" only (None = random start); its size is fixed by the
-    checkpoint, so `hidden` does not apply to it."""
+    checkpoint, so `hidden` does not apply to it. `ticks` is the window length; only the TCN
+    takes a length other than 30 (the F3b window ablation)."""
+    if ticks != T and name != "tcn":
+        raise ValueError(f"{name}: only the tcn supports a window of {ticks} ticks, not {T}")
+    if name == "tcn":
+        return TCN(n_classes, hidden, ticks)
     if name == "stgcn_pt":
         return PretrainedSTGCN(n_classes, checkpoint)
     models: dict[str, type[TCN] | type[GRUNet] | type[STGCN]] = {

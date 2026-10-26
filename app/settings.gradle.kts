@@ -15,3 +15,5 @@ dependencyResolutionManagement {
 rootProject.name = "ally"
 
 include(":fall:flow")
+include(":emotion:levels")
+include(":speech:phrases")
