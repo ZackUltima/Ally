@@ -4,7 +4,7 @@ research/papers/
 .mcp.json
 .roo/
 .claude/settings.local.json
-temporary-for-srd-delete-if-done/
+presentation-and-qna/srd/
 .env
 *.env
 
@@ -34,3 +34,11 @@ __pycache__/
 coverage.xml
 htmlcov/
 .ipynb_checkpoints/
+
+# Gradle and IDE files of the phone app (F3a)
+app/.gradle/
+app/.kotlin/
+app/**/build/
+app/local.properties
+.idea/
+*.iml

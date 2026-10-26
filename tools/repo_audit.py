@@ -25,7 +25,7 @@ EXCLUDED_PATTERNS: tuple[str, ...] = (
     ".mcp.json",
     ".roo/*",
     ".claude/settings.local.json",
-    "temporary-for-srd-delete-if-done/*",
+    "presentation-and-qna/srd/*",
     "*/data/*",
     "*.mp4",
     "*.avi",

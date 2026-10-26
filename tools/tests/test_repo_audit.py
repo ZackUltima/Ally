@@ -22,7 +22,7 @@ EXCLUDED_PATHS = [
     ".mcp.json",
     ".roo/a",
     ".claude/settings.local.json",
-    "temporary-for-srd-delete-if-done/a.pdf",
+    "presentation-and-qna/srd/a.pdf",
     "ml/fall/data/x.npz",
     "a.mp4",
     "a.avi",

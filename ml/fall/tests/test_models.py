@@ -70,3 +70,16 @@ def test_overfits_tiny_batch(name: ModelName) -> None:
         optimiser.step()
     model.eval()
     assert (model(x).argmax(1) == y).float().mean().item() == 1.0
+
+
+@pytest.mark.parametrize("ticks", [21, 30])
+def test_tcn_takes_other_window_lengths_with_a_fixed_pool(ticks: int) -> None:
+    model = build_model("tcn", 5, hidden=16, ticks=ticks).eval()
+    assert model(torch.zeros(2, 3, ticks, 33)).shape == (2, 5)
+    assert not any("Adaptive" in type(m).__name__ for m in model.modules())
+
+
+@pytest.mark.parametrize("name", ["gru", "stgcn", "stgcn_pt"])
+def test_only_the_tcn_takes_a_window_other_than_30(name: ModelName) -> None:
+    with pytest.raises(ValueError, match="only the tcn"):
+        build_model(name, 5, hidden=16, ticks=21)

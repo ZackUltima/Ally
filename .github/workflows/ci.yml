@@ -26,11 +26,14 @@ jobs:
           pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
           pip install -r ml/fall/requirements.txt -e ml/fall
 
+      - name: Install ml/companion and ml/emotion (NumPy, Pillow, pytest and ruff come with ml/fall's pins)
+        run: pip install --no-deps -e ml/companion -e ml/emotion
+
       - name: Repository audit (D-52)
         run: python tools/repo_audit.py
 
       - name: Lint
-        run: ruff check ml/fall tools
+        run: ruff check ml/fall ml/companion ml/emotion tools
 
       - name: Pose model (pinned version, checksum checked; never committed)
         run: |
@@ -42,5 +45,27 @@ jobs:
         working-directory: ml/fall
         run: pytest
 
+      - name: Tests, ml/companion (coverage at least 80%)
+        working-directory: ml/companion
+        run: pytest -p no:cacheprovider
+
+      - name: Tests, ml/emotion (coverage at least 80%)
+        working-directory: ml/emotion
+        run: pytest -p no:cacheprovider
+
       - name: Tests, tools
         run: pytest -p no:cacheprovider tools/tests
+
+  kotlin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Tests, ktlint and coverage at least 80%, app (fall flow)
+        working-directory: app
+        run: bash ./gradlew check koverVerify --console=plain

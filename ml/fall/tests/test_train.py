@@ -8,6 +8,7 @@ import torch
 from torch import nn
 
 import ally_fall.train as train_module
+from ally_fall.ablate import SETTINGS, apply
 from ally_fall.augment import AugmentConfig
 from ally_fall.train import RunConfig, load_config, run_baseline, train
 
@@ -263,3 +264,21 @@ def test_main_baseline_and_config(data_root: Path, tmp_path: Path) -> None:
     bad.write_text('run_id = "x"\nmodel = "lstm"\nlabel_set = "groups5"\nbeta = 0.9\n')
     assert train_module.main(["--config", str(bad), "--data-root", str(data_root),
                               "--results-dir", str(results)]) == 1
+
+
+def test_trains_with_hip_centred_input(data_root: Path, tmp_path: Path) -> None:
+    result = train(_cfg(hip_centred=True), data_root, tmp_path / "out", device="cpu")
+    assert result.best_epoch >= 1 and (tmp_path / "out" / "best.pt").exists()
+    plain = train(_cfg(), data_root, tmp_path / "plain", device="cpu")
+    wa = torch.load(tmp_path / "out" / "best.pt")
+    wb = torch.load(tmp_path / "plain" / "best.pt")
+    assert not all(torch.equal(wa[k], wb[k]) for k in wa), "centring must change what is learned"
+    assert plain.best_epoch >= 1
+
+
+def test_trains_on_shorter_windows_and_every_ablation_setting(data_root: Path,
+                                                              tmp_path: Path) -> None:
+    for setting in SETTINGS:  # one short run of each of the nine settings: none may crash
+        cfg = apply(_cfg(max_epochs=1, patience=1), setting)
+        result = train(cfg, data_root, tmp_path / setting.name, device="cpu")
+        assert result.best_epoch >= 1, setting.name

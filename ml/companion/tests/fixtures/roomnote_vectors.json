@@ -1,0 +1,57 @@
+[
+  {
+    "name": "decision 2 example",
+    "note": {
+      "time": "Friday 23 October, 7:40 pm",
+      "people": "one",
+      "objects": [
+        {"name": "cup", "place": "table", "small": false},
+        {"name": "glasses", "place": "sofa", "small": true}
+      ],
+      "talk": "comforting",
+      "notes": ["granddaughter Mei visits on Sundays", "likes gardening"]
+    },
+    "text": "<room>\ntime: Friday 23 October, 7:40 pm\npeople: one\nobjects: cup (table); glasses (sofa, small)\ntalk: comforting\nnotes: granddaughter Mei visits on Sundays; likes gardening\n</room>"
+  },
+  {
+    "name": "only the two fields that are always there",
+    "note": {"time": "Monday 2 November, 9:05 am", "people": "one", "objects": [], "talk": null, "notes": []},
+    "text": "<room>\ntime: Monday 2 November, 9:05 am\npeople: one\n</room>"
+  },
+  {
+    "name": "nobody in view, objects without a place",
+    "note": {
+      "time": "Sunday 1 November, 11:30 pm",
+      "people": "none",
+      "objects": [
+        {"name": "walker", "place": null, "small": false},
+        {"name": "pill box", "place": null, "small": true}
+      ],
+      "talk": null,
+      "notes": []
+    },
+    "text": "<room>\ntime: Sunday 1 November, 11:30 pm\npeople: none\nobjects: walker; pill box (small)\n</room>"
+  },
+  {
+    "name": "visitors: no notes",
+    "note": {
+      "time": "Saturday 31 October, 3:15 pm",
+      "people": "more",
+      "objects": [{"name": "cane", "place": "door", "small": false}],
+      "talk": "check-in",
+      "notes": []
+    },
+    "text": "<room>\ntime: Saturday 31 October, 3:15 pm\npeople: more\nobjects: cane (door)\ntalk: check-in\n</room>"
+  },
+  {
+    "name": "one note, a check-in",
+    "note": {
+      "time": "Tuesday 3 November, 6:00 pm",
+      "people": "one",
+      "objects": [],
+      "talk": "check-in",
+      "notes": ["prefers to be called Auntie Lim"]
+    },
+    "text": "<room>\ntime: Tuesday 3 November, 6:00 pm\npeople: one\ntalk: check-in\nnotes: prefers to be called Auntie Lim\n</room>"
+  }
+]

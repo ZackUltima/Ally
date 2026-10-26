@@ -8,7 +8,7 @@ Ally is an Android phone placed facing an older adult who lives alone. All AI ru
 
 | Path | What it holds |
 |---|---|
-| `defense.html`, `defense/` | Every project decision with its justification and alternatives |
+| `presentation-and-qna/defense.html`, `presentation-and-qna/defense/` | Every project decision with its justification and alternatives |
 | `plans/` | The design plan, the technical plan and the sprint plans |
 | `research/` | Research notes and the literature review |
 | `ml/fall/` | Fall-detection data pipeline, training and evaluation (Python) |
@@ -19,4 +19,4 @@ Datasets, videos and keypoint files are never stored here; each dataset is obtai
 ## Licence
 
 The code (`ml/`, `app/`, `backend/`, `tools/`) is released under the Apache License 2.0 (see `LICENSE`).
-The documents (`defense.html`, `defense/`, `plans/`, `research/`, `init-proposal.html` and other reports) are © the author, all rights reserved.
+The documents (`presentation-and-qna/defense.html`, `presentation-and-qna/defense/`, `plans/`, `research/`, `init-proposal.html` and other reports) are © the author, all rights reserved.
