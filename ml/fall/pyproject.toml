@@ -18,6 +18,9 @@ addopts = "--cov=ally_fall --cov-report=term-missing --cov-fail-under=80"
 
 [tool.coverage.run]
 branch = true
+# F3c (D-69): the OpenCV window and key handling cannot be tested without a screen;
+# the exclusion is listed in plans/sprints/f3c-review.md.
+omit = ["src/ally_fall/live/view.py"]
 
 [tool.ruff]
 line-length = 100
