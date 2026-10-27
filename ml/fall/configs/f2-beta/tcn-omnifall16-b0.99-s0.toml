@@ -1,0 +1,14 @@
+run_id = "tcn-omnifall16-b0.99-s0"
+model = "tcn"
+label_set = "omnifall16"
+beta = 0.99
+pose_model = "lite"
+hidden = 64
+lr = 0.001
+weight_decay = 0.0001
+batch = 256
+max_epochs = 40
+patience = 8
+seed = 0
+checkpoint = ""
+amp = true

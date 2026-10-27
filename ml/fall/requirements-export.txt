@@ -1,0 +1,22 @@
+# INT8 export (F3b Task 5, D-53): the LiteRT Torch converter and its helpers, installed on top of
+# requirements.txt in the WSL env "ally-fall" on 2026-10-27 (litert-torch 0.9.4 and torchao 0.18.0 are
+# the D-53 pins, PO 2026-10-17). Linux only. CI does not install this file (PO 2026-10-22): the
+# tests that need the converter are skipped there and run in the PO's local run.
+# Install with the torch and numpy pins held:
+#   pip install -c <(printf 'torch==2.13.0\nnumpy==2.4.6\n') -r requirements-export.txt
+litert-torch==0.9.4
+torchao==0.18.0
+ai-edge-litert==2.2.0
+# pulled in by the three above, as installed
+ai-edge-quantizer==0.9.0
+litert-converter==0.4.0
+litert-lm-builder==0.18.1
+flatbuffers==25.12.19
+jax==0.10.2
+jaxlib==0.10.2
+ml_dtypes==0.6.0
+protobuf==7.36.2
+safetensors==0.8.0
+scipy==1.17.1
+transformers==5.21.0
+typing_extensions==4.12.2
