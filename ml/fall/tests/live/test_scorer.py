@@ -146,3 +146,91 @@ def test_top_class_is_the_most_likely_class_and_matches_the_fall_mask(
     names = label_names(omnifall)
     fall_ids = [names.index("fall"), names.index("fallen")]
     assert np.array_equal(scorer.top_is_fall_batch(windows), np.isin(expected, fall_ids))
+
+
+def test_posture_is_the_grouped_probabilities_of_the_same_model(
+    scorer_files: tuple[Path, Path, Path, torch.nn.Module],
+) -> None:
+    config, weights, omnifall, model = scorer_files
+    scorer = Scorer.load(config, weights, omnifall)
+    windows = _windows(6, seed=7)
+    with torch.no_grad():
+        probs = torch.softmax(model(torch.from_numpy(windows)), dim=1).numpy()
+    names = label_names(omnifall)
+    expected = np.stack(
+        [
+            probs[:, [names.index(n) for n in ("standing", "walk")]].sum(axis=1),
+            probs[:, names.index("sitting")],
+            probs[:, [names.index(n) for n in ("lying", "lie_down", "fallen", "fall")]].sum(axis=1),
+            probs[:, [names.index(n) for n in ("sit_down", "stand_up")]].sum(axis=1),
+            probs[:, [names.index(n) for n in ("other", "kneel_down", "kneeling", "squat_down",
+                                               "squatting", "crawl", "jump")]].sum(axis=1),
+        ],
+        axis=1,
+    )
+    got = scorer.posture_batch(windows)
+    assert got.shape == (6, 5)
+    assert np.allclose(got, expected, atol=1e-6)
+    assert np.allclose(got.sum(axis=1), 1.0, atol=1e-5)
+    assert np.allclose(scorer.posture(windows[3]), expected[3], atol=1e-6)
+    assert np.array_equal(scorer.top_posture_batch(windows), expected.argmax(axis=1))
+
+
+def test_reading_the_posture_leaves_the_fall_score_unchanged(
+    scorer_files: tuple[Path, Path, Path, torch.nn.Module],
+) -> None:
+    scorer = Scorer.load(*scorer_files[:3])
+    windows = _windows(6, seed=9)
+    before = scorer.score_batch(windows)
+    top_before = scorer.top_is_fall_batch(windows)
+    scorer.posture_batch(windows)
+    assert np.array_equal(scorer.score_batch(windows), before)
+    assert np.array_equal(scorer.top_is_fall_batch(windows), top_before)
+
+
+def test_posture_needs_the_omnifall16_label_set(tmp_path: Path) -> None:
+    _weights(tmp_path / "best.pt", classes=5)
+    omnifall = _omnifall(tmp_path)
+    config = _config(tmp_path / "run.toml", label_set="groups5")
+    scorer = Scorer.load(config, tmp_path / "best.pt", omnifall)
+    with pytest.raises(ValueError, match="omnifall16"):
+        scorer.posture_batch(_windows(1))
+    assert 0.0 <= scorer.score(_windows(1)[0]) <= 1.0  # the fall score still works
+
+
+def test_a_wrong_window_shape_is_refused_for_posture_too(
+    scorer_files: tuple[Path, Path, Path, torch.nn.Module],
+) -> None:
+    scorer = Scorer.load(*scorer_files[:3])
+    with pytest.raises(ValueError, match="window"):
+        scorer.posture(np.zeros((2, 30, POINTS), dtype=np.float32))
+
+
+def test_has_posture_only_for_the_omnifall16_label_set(
+    scorer_files: tuple[Path, Path, Path, torch.nn.Module], tmp_path: Path
+) -> None:
+    assert Scorer.load(*scorer_files[:3]).has_posture
+    other = tmp_path / "g5"
+    other.mkdir()
+    _weights(other / "best.pt", classes=5)
+    config = _config(other / "run.toml", label_set="groups5")
+    assert not Scorer.load(config, other / "best.pt", _omnifall(other)).has_posture
+
+
+def test_read_gives_the_score_and_the_posture_of_one_window_from_one_pass(
+    scorer_files: tuple[Path, Path, Path, torch.nn.Module], tmp_path: Path
+) -> None:
+    scorer = Scorer.load(*scorer_files[:3])
+    window = _windows(1, seed=11)[0]
+    score, posture = scorer.read(window)
+    assert score == scorer.score(window)
+    assert posture is not None and np.array_equal(posture, scorer.posture(window))
+    other = tmp_path / "g5"
+    other.mkdir()
+    _weights(other / "best.pt", classes=5)
+    config = _config(other / "run.toml", label_set="groups5")
+    g5 = Scorer.load(config, other / "best.pt", _omnifall(other))
+    g5_score, g5_posture = g5.read(window)
+    assert g5_score == g5.score(window) and g5_posture is None
+    with pytest.raises(ValueError, match="window"):
+        scorer.read(np.zeros((2, 30, POINTS), dtype=np.float32))

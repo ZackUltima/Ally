@@ -1,0 +1,23 @@
+run_id = "tcn-omnifall16-b0.999-s0-ab-noise"
+model = "tcn"
+label_set = "omnifall16"
+beta = 0.999
+pose_model = "lite"
+hidden = 64
+lr = 0.001
+weight_decay = 0.0001
+batch = 256
+max_epochs = 40
+patience = 8
+seed = 0
+checkpoint = ""
+amp = true
+
+[augment]
+mirror_p = 0.5
+scale = 0.2
+dropout_p = 0.05
+edge_p = 0.3
+edge_max = 0.3
+rotate = 0.0
+noise_sd = 0.01

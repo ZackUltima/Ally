@@ -1,0 +1,15 @@
+run_id = "stgcn_pt-omnifall16-b0.999-s1"
+model = "stgcn_pt"
+label_set = "omnifall16"
+beta = 0.999
+pose_model = "lite"
+hidden = 64
+lr = 0.001
+weight_decay = 0.0001
+batch = 256
+max_epochs = 40
+patience = 8
+seed = 1
+checkpoint = "models/stgcn_pt/stgcn_8xb16-joint-u100-80e_ntu120-xsub-keypoint-2d_20221129-612416c6.pth"
+backbone_lr = 0.0001
+amp = true

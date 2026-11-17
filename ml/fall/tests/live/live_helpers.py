@@ -22,12 +22,14 @@ def write_omnifall(root: Path) -> Path:
     return root / "omnifall"
 
 
-def make_scorer(root: Path, seed: int = 0) -> Scorer:
-    """A random-weight 8-unit TCN (30 ticks, 16 classes) saved under `root` and loaded back."""
+def make_scorer(root: Path, seed: int = 0, label_set: str = "omnifall16") -> Scorer:
+    """A random-weight 8-unit TCN (30 ticks) saved under `root` and loaded back: 16 classes for
+    omnifall16, 5 for groups5."""
+    classes = 16 if label_set == "omnifall16" else 5
     torch.manual_seed(seed)
-    torch.save(build_model("tcn", 16, hidden=8).state_dict(), root / "best.pt")
+    torch.save(build_model("tcn", classes, hidden=8).state_dict(), root / "best.pt")
     (root / "run.toml").write_text(
-        'run_id = "t"\nmodel = "tcn"\nlabel_set = "omnifall16"\nbeta = 0.999\n'
+        f'run_id = "t"\nmodel = "tcn"\nlabel_set = "{label_set}"\nbeta = 0.999\n'
         'pose_model = "lite"\nhidden = 8\n',
         encoding="utf-8",
     )

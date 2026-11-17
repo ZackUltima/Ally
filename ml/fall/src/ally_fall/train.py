@@ -37,6 +37,7 @@ from ally_fall.baseline import (
 from ally_fall.data import (
     BuiltSplit,
     hip_centred,
+    keep_coco17,
     load_split,
     person_of,
     window_tensor,
@@ -84,10 +85,14 @@ class RunConfig:
     amp: bool = True  # mixed precision on a CUDA GPU (speed-up, PO 2026-10-22); ignored on CPU
     hip_centred: bool = False  # F3b ablation: move each window to its mean visible hip (D-55)
     window_ticks: int = 30  # F3b ablation: the last N ticks of each built window (21 = 2.1 s)
+    points: str = "all33"  # D-71 experiment: "coco17" zeroes the 16 non-COCO points
 
 
 def model_input(windows: NDArray[np.float32], cfg: RunConfig) -> NDArray[np.float32]:
-    """The windows as the model sees them: unchanged, or hip-centred when the config says so."""
+    """The windows as the model sees them: unchanged, or reduced to the COCO-17 points and/or
+    hip-centred when the config says so."""
+    if cfg.points == "coco17":
+        windows = keep_coco17(windows)
     return hip_centred(windows) if cfg.hip_centred else windows
 
 
@@ -111,6 +116,8 @@ def load_config(path: Path) -> RunConfig:
         raise ValueError(f"{path}: model must be one of {get_args(ModelName)}")
     if raw.get("label_set") not in get_args(LabelSet):
         raise ValueError(f"{path}: label_set must be one of {get_args(LabelSet)}")
+    if raw.get("points", "all33") not in ("all33", "coco17"):
+        raise ValueError(f"{path}: points must be \"all33\" or \"coco17\"")
     try:
         aug = AugmentConfig(**raw.pop("augment", {}))
     except TypeError as error:

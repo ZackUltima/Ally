@@ -1,0 +1,73 @@
+{
+  "run_id": "tcn-groups5-b0.999-s1",
+  "config": {
+    "run_id": "tcn-groups5-b0.999-s1",
+    "model": "tcn",
+    "label_set": "groups5",
+    "beta": 0.999,
+    "pose_model": "lite",
+    "hidden": 64,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "batch": 256,
+    "max_epochs": 40,
+    "patience": 8,
+    "seed": 1,
+    "augment": {
+      "mirror_p": 0.5,
+      "scale": 0.2,
+      "dropout_p": 0.05,
+      "edge_p": 0.3,
+      "edge_max": 0.3,
+      "rotate": 0.0,
+      "noise_sd": 0.0
+    },
+    "checkpoint": "",
+    "backbone_lr": null,
+    "amp": true
+  },
+  "best_epoch": 14,
+  "val": {
+    "tp": 2505,
+    "fp": 405,
+    "fn": 465,
+    "tn": 9474,
+    "recall": 0.8434343434343434,
+    "precision": 0.8608247422680413,
+    "f1": 0.8520408163265306,
+    "specificity": 0.9590039477679927
+  },
+  "intervals": {
+    "recall": [
+      0.8108293351610693,
+      0.8749172733289212
+    ],
+    "precision": [
+      0.7987851176917237,
+      0.9498495486459378
+    ],
+    "f1": [
+      0.8274975907484742,
+      0.8796530538489339
+    ]
+  },
+  "events": {
+    "detected": 54,
+    "missed": 3,
+    "false_alerts": 18
+  },
+  "per_label": {
+    "fall": 0.5797523670793882,
+    "fallen": 0.8338140670068782,
+    "lying": 0.1504,
+    "upright": 0.9086458435327524,
+    "rest": 0.8694877505567928
+  },
+  "train_counts": {
+    "fall": 3275,
+    "fallen": 15325,
+    "lying": 16799,
+    "upright": 48966,
+    "rest": 42624
+  }
+}

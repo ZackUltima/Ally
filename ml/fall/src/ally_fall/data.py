@@ -13,6 +13,7 @@ from numpy.typing import NDArray
 
 from ally_fall.augment import HIPS
 from ally_fall.build import window_features
+from ally_fall.pretrained import coco17_from_mediapipe
 from ally_fall.windows import WINDOW_TICKS
 
 
@@ -89,3 +90,18 @@ def hip_centred(windows: NDArray[np.float32]) -> NDArray[np.float32]:
         out[:, axis] = np.where(batch[:, 2] > 0, batch[:, axis] - shift[:, None, None],
                                 batch[:, axis])
     return out if windows.ndim == 4 else out[0]
+
+
+def keep_coco17(windows: NDArray[np.float32]) -> NDArray[np.float32]:
+    """Zeroes the 16 MediaPipe points that COCO has no slot for (experiment D-71, setup B).
+
+    Takes one window (3, ticks, 33) or a batch (n, 3, ticks, 33). The 17 COCO points keep their
+    values and their MediaPipe slots; the other 16 become (0, 0, 0), which the model already
+    reads as "point missing". The model stays 33 points wide.
+    """
+    if windows.ndim not in (3, 4) or windows.shape[-1] != 33:
+        raise ValueError(f"expected windows with 33 points, got shape {windows.shape}")
+    out = np.zeros_like(windows)
+    keep = list(coco17_from_mediapipe())
+    out[..., keep] = windows[..., keep]
+    return out
