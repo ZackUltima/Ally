@@ -31,6 +31,7 @@ class FrameResult:
     new_ticks: int
     score: float | None  # score of the newest tick scored by this frame, else None
     state: AlertState | None
+    posture: NDArray[np.float32] | None = None  # (5,) posture probabilities of that tick (D-72)
 
 
 class LivePipeline:
@@ -41,6 +42,7 @@ class LivePipeline:
         self._buffer = WindowBuffer(scorer.window_ticks)
         self._history: deque[NDArray[np.float32]] = deque(maxlen=HISTORY_TICKS)
         self.last_score: float | None = None
+        self.last_posture: NDArray[np.float32] | None = None
         self.active: bool = False
         self.fired_total: int = 0
 
@@ -50,6 +52,7 @@ class LivePipeline:
         self._history.clear()
         self.rule.reset()
         self.last_score = None
+        self.last_posture = None
         self.active = False
         self.fired_total = 0
 
@@ -58,6 +61,7 @@ class LivePipeline:
     ) -> FrameResult:
         """Add one frame's pose (xy [33, 2], visibility [33]) taken at `time_s` seconds."""
         score: float | None = None
+        posture: NDArray[np.float32] | None = None
         state: AlertState | None = None
         ticks = self._ticker.push(time_s, xy, vis)
         for tick in ticks:
@@ -65,12 +69,13 @@ class LivePipeline:
             window = self._buffer.push(tick.features)
             if window is None:
                 continue
-            score = self._scorer.score(window)
+            score, posture = self._scorer.read(window)
             state = self.rule.update(score)
             self.last_score = score
+            self.last_posture = posture
             self.active = state.active
             self.fired_total += int(state.fired)
-        return FrameResult(time_s, xy, vis, len(ticks), score, state)
+        return FrameResult(time_s, xy, vis, len(ticks), score, state, posture)
 
     def recent_keypoints(self) -> NDArray[np.float32]:
         """Keypoints [n, 33, 3] of the last ticks (at most 10 s), oldest first; no images."""

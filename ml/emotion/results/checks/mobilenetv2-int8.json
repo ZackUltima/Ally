@@ -1,0 +1,24 @@
+[
+  {
+    "method": "ptq",
+    "converts": true,
+    "all_int8": true,
+    "float_ops": [],
+    "top1_agreement": 0.554,
+    "logit_cosine": 0.8452392220497131,
+    "size_mb": 2.6238784790039062,
+    "ms_per_crop": 14.063240999973914,
+    "error": ""
+  },
+  {
+    "method": "qat",
+    "converts": true,
+    "all_int8": true,
+    "float_ops": [],
+    "top1_agreement": 0.444,
+    "logit_cosine": 0.6225042939186096,
+    "size_mb": 2.6238784790039062,
+    "ms_per_crop": 13.859299000046121,
+    "error": ""
+  }
+]

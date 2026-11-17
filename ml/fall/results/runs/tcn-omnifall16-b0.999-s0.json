@@ -1,0 +1,95 @@
+{
+  "run_id": "tcn-omnifall16-b0.999-s0",
+  "config": {
+    "run_id": "tcn-omnifall16-b0.999-s0",
+    "model": "tcn",
+    "label_set": "omnifall16",
+    "beta": 0.999,
+    "pose_model": "lite",
+    "hidden": 64,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "batch": 256,
+    "max_epochs": 40,
+    "patience": 8,
+    "seed": 0,
+    "augment": {
+      "mirror_p": 0.5,
+      "scale": 0.2,
+      "dropout_p": 0.05,
+      "edge_p": 0.3,
+      "edge_max": 0.3,
+      "rotate": 0.0,
+      "noise_sd": 0.0
+    },
+    "checkpoint": "",
+    "backbone_lr": null,
+    "amp": true
+  },
+  "best_epoch": 20,
+  "val": {
+    "tp": 2630,
+    "fp": 460,
+    "fn": 340,
+    "tn": 9419,
+    "recall": 0.8855218855218855,
+    "precision": 0.8511326860841424,
+    "f1": 0.8679867986798679,
+    "specificity": 0.9534365826500658
+  },
+  "intervals": {
+    "recall": [
+      0.8280632411067194,
+      0.9460400348128808
+    ],
+    "precision": [
+      0.7970830691185796,
+      0.923534409515718
+    ],
+    "f1": [
+      0.8122778675282714,
+      0.9346517626827171
+    ]
+  },
+  "events": {
+    "detected": 56,
+    "missed": 1,
+    "false_alerts": 16
+  },
+  "per_label": {
+    "walk": 0.8433777777777778,
+    "fall": 0.5838150289017341,
+    "fallen": 0.8558597091531224,
+    "sit_down": 0.3197969543147208,
+    "sitting": 0.8768181818181818,
+    "lie_down": 0.0,
+    "lying": 0.19383259911894274,
+    "stand_up": 0.15560640732265446,
+    "standing": 0.723994452149792,
+    "other": 0.299142111152555,
+    "kneel_down": 0.0,
+    "kneeling": 0.0,
+    "squat_down": 0.0,
+    "squatting": 0.0,
+    "crawl": 0.0,
+    "jump": 0.0
+  },
+  "train_counts": {
+    "walk": 25217,
+    "fall": 3275,
+    "fallen": 15325,
+    "sit_down": 869,
+    "sitting": 23659,
+    "lie_down": 55,
+    "lying": 16744,
+    "stand_up": 1198,
+    "standing": 23749,
+    "other": 16898,
+    "kneel_down": 0,
+    "kneeling": 0,
+    "squat_down": 0,
+    "squatting": 0,
+    "crawl": 0,
+    "jump": 0
+  }
+}

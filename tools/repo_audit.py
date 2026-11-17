@@ -26,6 +26,8 @@ EXCLUDED_PATTERNS: tuple[str, ...] = (
     ".roo/*",
     ".claude/settings.local.json",
     "presentation-and-qna/srd/*",
+    "NEVER COMMIT/*",
+    "CLAUDE.md",
     "*/data/*",
     "*.mp4",
     "*.avi",

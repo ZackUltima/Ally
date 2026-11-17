@@ -1,0 +1,95 @@
+{
+  "run_id": "stgcn-omnifall16-b0.999-s0",
+  "config": {
+    "run_id": "stgcn-omnifall16-b0.999-s0",
+    "model": "stgcn",
+    "label_set": "omnifall16",
+    "beta": 0.999,
+    "pose_model": "lite",
+    "hidden": 64,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "batch": 256,
+    "max_epochs": 40,
+    "patience": 8,
+    "seed": 0,
+    "augment": {
+      "mirror_p": 0.5,
+      "scale": 0.2,
+      "dropout_p": 0.05,
+      "edge_p": 0.3,
+      "edge_max": 0.3,
+      "rotate": 0.0,
+      "noise_sd": 0.0
+    },
+    "checkpoint": "",
+    "backbone_lr": null,
+    "amp": true
+  },
+  "best_epoch": 38,
+  "val": {
+    "tp": 2625,
+    "fp": 440,
+    "fn": 345,
+    "tn": 9439,
+    "recall": 0.8838383838383839,
+    "precision": 0.8564437194127243,
+    "f1": 0.8699254349627175,
+    "specificity": 0.9554610790565847
+  },
+  "intervals": {
+    "recall": [
+      0.8155467720685112,
+      0.9660574412532638
+    ],
+    "precision": [
+      0.7928853754940711,
+      0.916597853014038
+    ],
+    "f1": [
+      0.8096795291039895,
+      0.940677966101695
+    ]
+  },
+  "events": {
+    "detected": 52,
+    "missed": 5,
+    "false_alerts": 24
+  },
+  "per_label": {
+    "walk": 0.8478587528174305,
+    "fall": 0.5788732394366197,
+    "fallen": 0.865872156013001,
+    "sit_down": 0.5099236641221374,
+    "sitting": 0.8937546653396368,
+    "lie_down": 0.3230769230769231,
+    "lying": 0.0810126582278481,
+    "stand_up": 0.47107438016528924,
+    "standing": 0.9134790528233151,
+    "other": 0.7049718574108818,
+    "kneel_down": 0.0,
+    "kneeling": 0.0,
+    "squat_down": 0.0,
+    "squatting": 0.0,
+    "crawl": 0.0,
+    "jump": 0.0
+  },
+  "train_counts": {
+    "walk": 25217,
+    "fall": 3275,
+    "fallen": 15325,
+    "sit_down": 869,
+    "sitting": 23659,
+    "lie_down": 55,
+    "lying": 16744,
+    "stand_up": 1198,
+    "standing": 23749,
+    "other": 16898,
+    "kneel_down": 0,
+    "kneeling": 0,
+    "squat_down": 0,
+    "squatting": 0,
+    "crawl": 0,
+    "jump": 0
+  }
+}

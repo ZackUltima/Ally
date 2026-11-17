@@ -1,0 +1,53 @@
+[
+  {
+    "run_id": "tcn-omnifall16-b0.999-s0",
+    "method": "qat",
+    "file": "/home/user/ally-data/models/tcn-omnifall16-b0.999-s0-int8-qat.tflite",
+    "size_kb": 60.28125,
+    "ms_per_window": 0.0380919999543039,
+    "falls_total": 57,
+    "accuracy_float": 0.7248813137209121,
+    "accuracy_int8": 0.7950813292863258,
+    "label_agreement": 0.7912678029418632,
+    "fall_agreement": 0.9631099696474433,
+    "falls_found_float": 56,
+    "falls_found_int8": 47,
+    "float_compute_ops": [],
+    "d53_marks_pass": false,
+    "gate_pass": false
+  },
+  {
+    "run_id": "tcn-omnifall16-b0.999-s1",
+    "method": "qat",
+    "file": "/home/user/ally-data/models/tcn-omnifall16-b0.999-s1-int8-qat.tflite",
+    "size_kb": 60.28125,
+    "ms_per_window": 0.03451499992479512,
+    "falls_total": 57,
+    "accuracy_float": 0.7921239006926609,
+    "accuracy_int8": 0.783874231457701,
+    "label_agreement": 0.9238073001790023,
+    "fall_agreement": 0.9764962253871896,
+    "falls_found_float": 54,
+    "falls_found_int8": 49,
+    "float_compute_ops": [],
+    "d53_marks_pass": false,
+    "gate_pass": false
+  },
+  {
+    "run_id": "tcn-omnifall16-b0.999-s2",
+    "method": "qat",
+    "file": "/home/user/ally-data/models/tcn-omnifall16-b0.999-s2-int8-qat.tflite",
+    "size_kb": 60.28125,
+    "ms_per_window": 0.03492599989840528,
+    "falls_total": 57,
+    "accuracy_float": 0.76161568993696,
+    "accuracy_int8": 0.7945365398085454,
+    "label_agreement": 0.869561833605728,
+    "fall_agreement": 0.9728383531792357,
+    "falls_found_float": 53,
+    "falls_found_int8": 50,
+    "float_compute_ops": [],
+    "d53_marks_pass": false,
+    "gate_pass": false
+  }
+]

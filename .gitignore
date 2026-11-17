@@ -5,6 +5,9 @@ research/papers/
 .roo/
 .claude/settings.local.json
 presentation-and-qna/srd/
+# Documents, plans, research and course files are never committed (PO, 2026-10-20; moved 2026-11-16)
+NEVER COMMIT/
+CLAUDE.md
 .env
 *.env
 

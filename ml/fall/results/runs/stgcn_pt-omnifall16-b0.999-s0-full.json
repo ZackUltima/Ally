@@ -1,0 +1,95 @@
+{
+  "run_id": "stgcn_pt-omnifall16-b0.999-s0-full",
+  "config": {
+    "run_id": "stgcn_pt-omnifall16-b0.999-s0-full",
+    "model": "stgcn_pt",
+    "label_set": "omnifall16",
+    "beta": 0.999,
+    "pose_model": "full",
+    "hidden": 64,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "batch": 256,
+    "max_epochs": 40,
+    "patience": 8,
+    "seed": 0,
+    "augment": {
+      "mirror_p": 0.5,
+      "scale": 0.2,
+      "dropout_p": 0.05,
+      "edge_p": 0.3,
+      "edge_max": 0.3,
+      "rotate": 0.0,
+      "noise_sd": 0.0
+    },
+    "checkpoint": "models/stgcn_pt/stgcn_8xb16-joint-u100-80e_ntu120-xsub-keypoint-2d_20221129-612416c6.pth",
+    "backbone_lr": 0.0001,
+    "amp": true
+  },
+  "best_epoch": 3,
+  "val": {
+    "tp": 2691,
+    "fp": 473,
+    "fn": 279,
+    "tn": 9406,
+    "recall": 0.906060606060606,
+    "precision": 0.8505056890012642,
+    "f1": 0.8774046299315292,
+    "specificity": 0.9521206599858285
+  },
+  "intervals": {
+    "recall": [
+      0.8857615894039735,
+      0.9274106175514626
+    ],
+    "precision": [
+      0.7582287473360171,
+      0.9593076222289706
+    ],
+    "f1": [
+      0.8168367346938775,
+      0.9373887240356084
+    ]
+  },
+  "events": {
+    "detected": 49,
+    "missed": 8,
+    "false_alerts": 25
+  },
+  "per_label": {
+    "walk": 0.8916558260546367,
+    "fall": 0.6983676366217175,
+    "fallen": 0.8452910052910053,
+    "sit_down": 0.5239085239085239,
+    "sitting": 0.9215928765767994,
+    "lie_down": 0.15714285714285714,
+    "lying": 0.2132701421800948,
+    "stand_up": 0.4036697247706422,
+    "standing": 0.9192602616147948,
+    "other": 0.7390584338774545,
+    "kneel_down": 0.0,
+    "kneeling": 0.0,
+    "squat_down": 0.0,
+    "squatting": 0.0,
+    "crawl": 0.0,
+    "jump": 0.0
+  },
+  "train_counts": {
+    "walk": 25217,
+    "fall": 3275,
+    "fallen": 15325,
+    "sit_down": 869,
+    "sitting": 23659,
+    "lie_down": 55,
+    "lying": 16744,
+    "stand_up": 1198,
+    "standing": 23749,
+    "other": 16898,
+    "kneel_down": 0,
+    "kneeling": 0,
+    "squat_down": 0,
+    "squatting": 0,
+    "crawl": 0,
+    "jump": 0
+  }
+}

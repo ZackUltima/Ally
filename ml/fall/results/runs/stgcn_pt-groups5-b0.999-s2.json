@@ -1,0 +1,73 @@
+{
+  "run_id": "stgcn_pt-groups5-b0.999-s2",
+  "config": {
+    "run_id": "stgcn_pt-groups5-b0.999-s2",
+    "model": "stgcn_pt",
+    "label_set": "groups5",
+    "beta": 0.999,
+    "pose_model": "lite",
+    "hidden": 64,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "batch": 256,
+    "max_epochs": 40,
+    "patience": 8,
+    "seed": 2,
+    "augment": {
+      "mirror_p": 0.5,
+      "scale": 0.2,
+      "dropout_p": 0.05,
+      "edge_p": 0.3,
+      "edge_max": 0.3,
+      "rotate": 0.0,
+      "noise_sd": 0.0
+    },
+    "checkpoint": "models/stgcn_pt/stgcn_8xb16-joint-u100-80e_ntu120-xsub-keypoint-2d_20221129-612416c6.pth",
+    "backbone_lr": 0.0001,
+    "amp": true
+  },
+  "best_epoch": 20,
+  "val": {
+    "tp": 2731,
+    "fp": 362,
+    "fn": 239,
+    "tn": 9517,
+    "recall": 0.9195286195286195,
+    "precision": 0.8829615260265115,
+    "f1": 0.90087415470889,
+    "specificity": 0.9633566150420083
+  },
+  "intervals": {
+    "recall": [
+      0.8799668874172185,
+      0.9680232558139535
+    ],
+    "precision": [
+      0.830901511203752,
+      0.9349865951742627
+    ],
+    "f1": [
+      0.8547306352184401,
+      0.9477728760495233
+    ]
+  },
+  "events": {
+    "detected": 54,
+    "missed": 3,
+    "false_alerts": 21
+  },
+  "per_label": {
+    "fall": 0.6728252501924558,
+    "fallen": 0.8837111670864819,
+    "lying": 0.07194244604316546,
+    "upright": 0.9135259631490787,
+    "rest": 0.8799917235671426
+  },
+  "train_counts": {
+    "fall": 3275,
+    "fallen": 15325,
+    "lying": 16799,
+    "upright": 48966,
+    "rest": 42624
+  }
+}

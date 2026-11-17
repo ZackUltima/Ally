@@ -1,0 +1,263 @@
+{
+  "run_id": "tcn-omnifall16-b0.999-s0",
+  "totals": {
+    "windows": 42109,
+    "fall_windows": 6080,
+    "tp": 5282,
+    "fp": 3684,
+    "fn": 798,
+    "tn": 32345,
+    "found": 103,
+    "missed": 3,
+    "false_alerts": 27,
+    "no_pose": 0.07588559848646767
+  },
+  "by_dataset": {
+    "GMDCSA24": {
+      "windows": 1812,
+      "fall_windows": 454,
+      "tp": 382,
+      "fp": 126,
+      "fn": 72,
+      "tn": 1232,
+      "found": 16,
+      "missed": 1,
+      "false_alerts": 5,
+      "no_pose": 0.02676600441501104
+    },
+    "caucafall": {
+      "windows": 1545,
+      "fall_windows": 717,
+      "tp": 503,
+      "fp": 83,
+      "fn": 214,
+      "tn": 745,
+      "found": 9,
+      "missed": 1,
+      "false_alerts": 4,
+      "no_pose": 0.23842502696871629
+    },
+    "le2i": {
+      "windows": 4781,
+      "fall_windows": 901,
+      "tp": 671,
+      "fp": 69,
+      "fn": 230,
+      "tn": 3811,
+      "found": 21,
+      "missed": 1,
+      "false_alerts": 6,
+      "no_pose": 0.10688837760580074
+    },
+    "up_fall": {
+      "windows": 33971,
+      "fall_windows": 4008,
+      "tp": 3726,
+      "fp": 3406,
+      "fn": 282,
+      "tn": 26557,
+      "found": 57,
+      "missed": 0,
+      "false_alerts": 12,
+      "no_pose": 0.06675007113910884
+    }
+  },
+  "by_person": {
+    "GMDCSA24/4": {
+      "windows": 1812,
+      "fall_windows": 454,
+      "tp": 382,
+      "fp": 126,
+      "fn": 72,
+      "tn": 1232,
+      "found": 16,
+      "missed": 1,
+      "false_alerts": 5,
+      "no_pose": 0.02676600441501104
+    },
+    "caucafall/8": {
+      "windows": 768,
+      "fall_windows": 355,
+      "tp": 184,
+      "fp": 63,
+      "fn": 171,
+      "tn": 350,
+      "found": 4,
+      "missed": 1,
+      "false_alerts": 3,
+      "no_pose": 0.44166666666666665
+    },
+    "caucafall/9": {
+      "windows": 777,
+      "fall_windows": 362,
+      "tp": 319,
+      "fp": 20,
+      "fn": 43,
+      "tn": 395,
+      "found": 5,
+      "missed": 0,
+      "false_alerts": 1,
+      "no_pose": 0.03753753753753753
+    },
+    "le2i/2": {
+      "windows": 641,
+      "fall_windows": 301,
+      "tp": 234,
+      "fp": 0,
+      "fn": 67,
+      "tn": 340,
+      "found": 7,
+      "missed": 0,
+      "false_alerts": 0,
+      "no_pose": 0.00140405616224649
+    },
+    "le2i/7": {
+      "windows": 4140,
+      "fall_windows": 600,
+      "tp": 437,
+      "fp": 69,
+      "fn": 163,
+      "tn": 3471,
+      "found": 14,
+      "missed": 1,
+      "false_alerts": 6,
+      "no_pose": 0.12322061191626409
+    },
+    "up_fall/15": {
+      "windows": 7213,
+      "fall_windows": 846,
+      "tp": 797,
+      "fp": 54,
+      "fn": 49,
+      "tn": 6313,
+      "found": 12,
+      "missed": 0,
+      "false_alerts": 3,
+      "no_pose": 0.09427884837561809
+    },
+    "up_fall/16": {
+      "windows": 8918,
+      "fall_windows": 1056,
+      "tp": 969,
+      "fp": 1638,
+      "fn": 87,
+      "tn": 6224,
+      "found": 15,
+      "missed": 0,
+      "false_alerts": 5,
+      "no_pose": 0.05533751962323391
+    },
+    "up_fall/2": {
+      "windows": 8916,
+      "fall_windows": 1050,
+      "tp": 1050,
+      "fp": 1714,
+      "fn": 0,
+      "tn": 6152,
+      "found": 15,
+      "missed": 0,
+      "false_alerts": 4,
+      "no_pose": 0.04964483325856138
+    },
+    "up_fall/4": {
+      "windows": 8924,
+      "fall_windows": 1056,
+      "tp": 910,
+      "fp": 0,
+      "fn": 146,
+      "tn": 7868,
+      "found": 15,
+      "missed": 0,
+      "false_alerts": 0,
+      "no_pose": 0.07299417301658451
+    }
+  },
+  "false_positive_labels": [
+    {
+      "label": "lying",
+      "windows": 5216,
+      "flagged": 3402
+    },
+    {
+      "label": "other",
+      "windows": 5085,
+      "flagged": 166
+    },
+    {
+      "label": "lie_down",
+      "windows": 102,
+      "flagged": 35
+    },
+    {
+      "label": "sitting",
+      "windows": 8113,
+      "flagged": 33
+    },
+    {
+      "label": "stand_up",
+      "windows": 369,
+      "flagged": 26
+    },
+    {
+      "label": "sit_down",
+      "windows": 314,
+      "flagged": 11
+    },
+    {
+      "label": "walk",
+      "windows": 9139,
+      "flagged": 10
+    },
+    {
+      "label": "standing",
+      "windows": 7691,
+      "flagged": 1
+    }
+  ],
+  "pose_bins": [
+    {
+      "name": "no ticks lost",
+      "windows": 35222,
+      "fall_windows": 4633,
+      "recall": 0.9203539823008849,
+      "non_fall_windows": 30589,
+      "flagged_rate": 0.11330870574389486,
+      "false_positives": 3466,
+      "share_of_false_positives": 0.9408251900108577
+    },
+    {
+      "name": "up to a fifth of the ticks",
+      "windows": 2219,
+      "fall_windows": 809,
+      "recall": 0.927070457354759,
+      "non_fall_windows": 1410,
+      "flagged_rate": 0.07659574468085106,
+      "false_positives": 108,
+      "share_of_false_positives": 0.029315960912052116
+    },
+    {
+      "name": "a fifth to half of the ticks",
+      "windows": 1738,
+      "fall_windows": 172,
+      "recall": 0.8313953488372093,
+      "non_fall_windows": 1566,
+      "flagged_rate": 0.04853128991060025,
+      "false_positives": 76,
+      "share_of_false_positives": 0.02062975027144408
+    },
+    {
+      "name": "over half of the ticks",
+      "windows": 2930,
+      "fall_windows": 466,
+      "recall": 0.26824034334763946,
+      "non_fall_windows": 2464,
+      "flagged_rate": 0.013798701298701298,
+      "false_positives": 34,
+      "share_of_false_positives": 0.009229098805646038
+    }
+  ],
+  "prevalence_test": 0.14438718563727468,
+  "prevalence_val": 0.23114639271538642,
+  "precision_at_val_prevalence": 0.7186501665788368,
+  "kind": "error_analysis"
+}

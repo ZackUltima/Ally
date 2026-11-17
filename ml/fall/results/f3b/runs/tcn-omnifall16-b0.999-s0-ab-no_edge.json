@@ -1,0 +1,97 @@
+{
+  "run_id": "tcn-omnifall16-b0.999-s0-ab-no_edge",
+  "config": {
+    "run_id": "tcn-omnifall16-b0.999-s0-ab-no_edge",
+    "model": "tcn",
+    "label_set": "omnifall16",
+    "beta": 0.999,
+    "pose_model": "lite",
+    "hidden": 64,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "batch": 256,
+    "max_epochs": 40,
+    "patience": 8,
+    "seed": 0,
+    "augment": {
+      "mirror_p": 0.5,
+      "scale": 0.2,
+      "dropout_p": 0.05,
+      "edge_p": 0.0,
+      "edge_max": 0.3,
+      "rotate": 0.0,
+      "noise_sd": 0.0
+    },
+    "checkpoint": "",
+    "backbone_lr": null,
+    "amp": true,
+    "hip_centred": false,
+    "window_ticks": 30
+  },
+  "best_epoch": 12,
+  "val": {
+    "tp": 2595,
+    "fp": 451,
+    "fn": 375,
+    "tn": 9428,
+    "recall": 0.8737373737373737,
+    "precision": 0.8519369665134603,
+    "f1": 0.8626994680851063,
+    "specificity": 0.9543476060329993
+  },
+  "intervals": {
+    "recall": [
+      0.8256880733944955,
+      0.9152892561983471
+    ],
+    "precision": [
+      0.7948051948051948,
+      0.9122137404580153
+    ],
+    "f1": [
+      0.8099523557437798,
+      0.9105858170606372
+    ]
+  },
+  "events": {
+    "detected": 55,
+    "missed": 2,
+    "false_alerts": 14
+  },
+  "per_label": {
+    "walk": 0.8003420265070543,
+    "fall": 0.582461786001609,
+    "fallen": 0.8552273203435994,
+    "sit_down": 0.2215909090909091,
+    "sitting": 0.8702361468318915,
+    "lie_down": 0.0,
+    "lying": 0.1346153846153846,
+    "stand_up": 0.10497237569060773,
+    "standing": 0.8734341252699784,
+    "other": 0.6087985796014993,
+    "kneel_down": 0.0,
+    "kneeling": 0.0,
+    "squat_down": 0.0,
+    "squatting": 0.0,
+    "crawl": 0.0,
+    "jump": 0.0
+  },
+  "train_counts": {
+    "walk": 25217,
+    "fall": 3275,
+    "fallen": 15325,
+    "sit_down": 869,
+    "sitting": 23659,
+    "lie_down": 55,
+    "lying": 16744,
+    "stand_up": 1198,
+    "standing": 23749,
+    "other": 16898,
+    "kneel_down": 0,
+    "kneeling": 0,
+    "squat_down": 0,
+    "squatting": 0,
+    "crawl": 0,
+    "jump": 0
+  }
+}

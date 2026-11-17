@@ -1,0 +1,95 @@
+{
+  "run_id": "gru-omnifall16-b0.999-s0",
+  "config": {
+    "run_id": "gru-omnifall16-b0.999-s0",
+    "model": "gru",
+    "label_set": "omnifall16",
+    "beta": 0.999,
+    "pose_model": "lite",
+    "hidden": 64,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "batch": 256,
+    "max_epochs": 40,
+    "patience": 8,
+    "seed": 0,
+    "augment": {
+      "mirror_p": 0.5,
+      "scale": 0.2,
+      "dropout_p": 0.05,
+      "edge_p": 0.3,
+      "edge_max": 0.3,
+      "rotate": 0.0,
+      "noise_sd": 0.0
+    },
+    "checkpoint": "",
+    "backbone_lr": null,
+    "amp": true
+  },
+  "best_epoch": 4,
+  "val": {
+    "tp": 2629,
+    "fp": 481,
+    "fn": 341,
+    "tn": 9398,
+    "recall": 0.8851851851851852,
+    "precision": 0.8453376205787781,
+    "f1": 0.8648026315789473,
+    "specificity": 0.951310861423221
+  },
+  "intervals": {
+    "recall": [
+      0.8374183006535948,
+      0.9303742384682332
+    ],
+    "precision": [
+      0.773109243697479,
+      0.9290266512166859
+    ],
+    "f1": [
+      0.8024980483996877,
+      0.929699956515437
+    ]
+  },
+  "events": {
+    "detected": 54,
+    "missed": 3,
+    "false_alerts": 21
+  },
+  "per_label": {
+    "walk": 0.7821391484942887,
+    "fall": 0.5651558073654391,
+    "fallen": 0.8628963153384748,
+    "sit_down": 0.05063291139240506,
+    "sitting": 0.8252897787144362,
+    "lie_down": 0.0,
+    "lying": 0.14207650273224043,
+    "stand_up": 0.0,
+    "standing": 0.7330097087378641,
+    "other": 0.33176295561616664,
+    "kneel_down": 0.0,
+    "kneeling": 0.0,
+    "squat_down": 0.0,
+    "squatting": 0.0,
+    "crawl": 0.0,
+    "jump": 0.0
+  },
+  "train_counts": {
+    "walk": 25217,
+    "fall": 3275,
+    "fallen": 15325,
+    "sit_down": 869,
+    "sitting": 23659,
+    "lie_down": 55,
+    "lying": 16744,
+    "stand_up": 1198,
+    "standing": 23749,
+    "other": 16898,
+    "kneel_down": 0,
+    "kneeling": 0,
+    "squat_down": 0,
+    "squatting": 0,
+    "crawl": 0,
+    "jump": 0
+  }
+}

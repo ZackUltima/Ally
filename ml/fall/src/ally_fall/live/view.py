@@ -14,6 +14,7 @@ from numpy.typing import NDArray
 
 from ally_fall.live.app import ViewAction
 from ally_fall.live.pipeline import FrameResult, LivePipeline
+from ally_fall.posture import POSTURES
 
 # Skeleton lines between MediaPipe's 33 points (face, arms, trunk, legs, hands, feet).
 BONES: tuple[tuple[int, int], ...] = (
@@ -37,6 +38,7 @@ class CvView:
         self._window = window
         self._shown_at = time.perf_counter()
         self._fps = 0.0
+        self._show_posture = True
 
     def _draw(
         self, bgr: NDArray[np.uint8], result: FrameResult, pipeline: LivePipeline
@@ -62,6 +64,10 @@ class CvView:
             f"alert when score >= {rule.threshold:.2f} on {rule.required} ticks in a row",
             f"alerts so far {pipeline.fired_total}   {self._fps:.0f} fps",
         ]
+        posture = pipeline.last_posture
+        if self._show_posture and posture is not None:
+            top = int(np.argmax(posture))
+            lines.insert(2, f"posture: {POSTURES[top]} {posture[top]:.0%}  (p hides)")
         if not seen.any():
             lines.append("no person found")
         for row, text in enumerate(lines):
@@ -117,6 +123,8 @@ class CvView:
             return ViewAction.SAVE_FRAME
         if key == ord("m"):
             self._mirror = not self._mirror
+        elif key == ord("p"):
+            self._show_posture = not self._show_posture
         elif key in (ord("+"), ord("=")):
             rule.set_threshold(min(1.0, round(rule.threshold + 0.05, 2)))
         elif key == ord("-"):

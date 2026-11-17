@@ -1,0 +1,14 @@
+run_id = "gru-groups5-b0.999-s2"
+model = "gru"
+label_set = "groups5"
+beta = 0.999
+pose_model = "lite"
+hidden = 64
+lr = 0.001
+weight_decay = 0.0001
+batch = 256
+max_epochs = 40
+patience = 8
+seed = 2
+checkpoint = ""
+amp = true

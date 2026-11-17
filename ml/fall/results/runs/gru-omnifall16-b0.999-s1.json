@@ -1,0 +1,95 @@
+{
+  "run_id": "gru-omnifall16-b0.999-s1",
+  "config": {
+    "run_id": "gru-omnifall16-b0.999-s1",
+    "model": "gru",
+    "label_set": "omnifall16",
+    "beta": 0.999,
+    "pose_model": "lite",
+    "hidden": 64,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "batch": 256,
+    "max_epochs": 40,
+    "patience": 8,
+    "seed": 1,
+    "augment": {
+      "mirror_p": 0.5,
+      "scale": 0.2,
+      "dropout_p": 0.05,
+      "edge_p": 0.3,
+      "edge_max": 0.3,
+      "rotate": 0.0,
+      "noise_sd": 0.0
+    },
+    "checkpoint": "",
+    "backbone_lr": null,
+    "amp": true
+  },
+  "best_epoch": 10,
+  "val": {
+    "tp": 2634,
+    "fp": 462,
+    "fn": 336,
+    "tn": 9417,
+    "recall": 0.8868686868686869,
+    "precision": 0.8507751937984496,
+    "f1": 0.8684470820969338,
+    "specificity": 0.953234133009414
+  },
+  "intervals": {
+    "recall": [
+      0.8321078431372549,
+      0.9364664926022629
+    ],
+    "precision": [
+      0.7787234042553192,
+      0.9324603721571331
+    ],
+    "f1": [
+      0.8099905153335442,
+      0.9321391663796073
+    ]
+  },
+  "events": {
+    "detected": 55,
+    "missed": 2,
+    "false_alerts": 20
+  },
+  "per_label": {
+    "walk": 0.7813544415127529,
+    "fall": 0.5602739726027397,
+    "fallen": 0.8519322622666088,
+    "sit_down": 0.3944954128440367,
+    "sitting": 0.8848513449740444,
+    "lie_down": 0.0,
+    "lying": 0.0,
+    "stand_up": 0.3614457831325301,
+    "standing": 0.7421799106275501,
+    "other": 0.24438454627133874,
+    "kneel_down": 0.0,
+    "kneeling": 0.0,
+    "squat_down": 0.0,
+    "squatting": 0.0,
+    "crawl": 0.0,
+    "jump": 0.0
+  },
+  "train_counts": {
+    "walk": 25217,
+    "fall": 3275,
+    "fallen": 15325,
+    "sit_down": 869,
+    "sitting": 23659,
+    "lie_down": 55,
+    "lying": 16744,
+    "stand_up": 1198,
+    "standing": 23749,
+    "other": 16898,
+    "kneel_down": 0,
+    "kneeling": 0,
+    "squat_down": 0,
+    "squatting": 0,
+    "crawl": 0,
+    "jump": 0
+  }
+}

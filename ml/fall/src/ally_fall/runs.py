@@ -96,7 +96,7 @@ def _toml_value(value: object) -> str:
 
 
 # Added in F3b: left out of a config while at their defaults, so F2 configs read as they did.
-_OMIT_WHEN_DEFAULT: frozenset[str] = frozenset({"hip_centred", "window_ticks"})
+_OMIT_WHEN_DEFAULT: frozenset[str] = frozenset({"hip_centred", "window_ticks", "points"})
 
 
 def write_config(cfg: RunConfig, path: Path) -> None:

@@ -1,0 +1,32 @@
+[
+  {
+    "method": "ptq",
+    "converts": true,
+    "all_int8": false,
+    "float_ops": [
+      "ADD",
+      "HARD_SWISH",
+      "MUL"
+    ],
+    "top1_agreement": 0.63,
+    "logit_cosine": 0.8996061086654663,
+    "size_mb": 4.599510192871094,
+    "ms_per_crop": 18.097599500038086,
+    "error": ""
+  },
+  {
+    "method": "qat",
+    "converts": true,
+    "all_int8": false,
+    "float_ops": [
+      "ADD",
+      "HARD_SWISH",
+      "MUL"
+    ],
+    "top1_agreement": 0.112,
+    "logit_cosine": -0.03948160633444786,
+    "size_mb": 4.599510192871094,
+    "ms_per_crop": 17.187334000027477,
+    "error": ""
+  }
+]

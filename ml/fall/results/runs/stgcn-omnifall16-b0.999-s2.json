@@ -1,0 +1,95 @@
+{
+  "run_id": "stgcn-omnifall16-b0.999-s2",
+  "config": {
+    "run_id": "stgcn-omnifall16-b0.999-s2",
+    "model": "stgcn",
+    "label_set": "omnifall16",
+    "beta": 0.999,
+    "pose_model": "lite",
+    "hidden": 64,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "batch": 256,
+    "max_epochs": 40,
+    "patience": 8,
+    "seed": 2,
+    "augment": {
+      "mirror_p": 0.5,
+      "scale": 0.2,
+      "dropout_p": 0.05,
+      "edge_p": 0.3,
+      "edge_max": 0.3,
+      "rotate": 0.0,
+      "noise_sd": 0.0
+    },
+    "checkpoint": "",
+    "backbone_lr": null,
+    "amp": true
+  },
+  "best_epoch": 26,
+  "val": {
+    "tp": 2660,
+    "fp": 509,
+    "fn": 310,
+    "tn": 9370,
+    "recall": 0.8956228956228957,
+    "precision": 0.8393815083622594,
+    "f1": 0.8665906499429875,
+    "specificity": 0.9484765664540945
+  },
+  "intervals": {
+    "recall": [
+      0.8491065519523494,
+      0.9437971213159698
+    ],
+    "precision": [
+      0.7583823021085379,
+      0.9112021857923497
+    ],
+    "f1": [
+      0.8228358672044679,
+      0.9233163554046406
+    ]
+  },
+  "events": {
+    "detected": 53,
+    "missed": 4,
+    "false_alerts": 27
+  },
+  "per_label": {
+    "walk": 0.8436555891238671,
+    "fall": 0.5965189873417721,
+    "fallen": 0.8521025641025641,
+    "sit_down": 0.4532803180914513,
+    "sitting": 0.8938985542759128,
+    "lie_down": 0.0,
+    "lying": 0.08899297423887588,
+    "stand_up": 0.4060475161987041,
+    "standing": 0.8862745098039215,
+    "other": 0.6523332518934767,
+    "kneel_down": 0.0,
+    "kneeling": 0.0,
+    "squat_down": 0.0,
+    "squatting": 0.0,
+    "crawl": 0.0,
+    "jump": 0.0
+  },
+  "train_counts": {
+    "walk": 25217,
+    "fall": 3275,
+    "fallen": 15325,
+    "sit_down": 869,
+    "sitting": 23659,
+    "lie_down": 55,
+    "lying": 16744,
+    "stand_up": 1198,
+    "standing": 23749,
+    "other": 16898,
+    "kneel_down": 0,
+    "kneeling": 0,
+    "squat_down": 0,
+    "squatting": 0,
+    "crawl": 0,
+    "jump": 0
+  }
+}

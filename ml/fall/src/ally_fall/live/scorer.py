@@ -17,16 +17,24 @@ from ally_fall.keypoints import POINTS
 from ally_fall.labels import class_names, fall_classes
 from ally_fall.models import build_model
 from ally_fall.omnifall import label_names
+from ally_fall.posture import group_probabilities, posture_map
 from ally_fall.train import RunConfig, load_config, model_input
 
 
 class Scorer:
     """A loaded fall model; `score` for one window, `score_batch` for many."""
 
-    def __init__(self, model: torch.nn.Module, cfg: RunConfig, fall: tuple[int, ...]) -> None:
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        cfg: RunConfig,
+        fall: tuple[int, ...],
+        classes: tuple[str, ...],
+    ) -> None:
         self._model = model.eval()
         self._cfg = cfg
         self._fall = list(fall)
+        self._classes = classes
 
     @classmethod
     def load(cls, config: Path, weights: Path, omnifall_dir: Path) -> Scorer:
@@ -47,7 +55,7 @@ class Scorer:
                 f"{weights} does not match the config {config} "
                 f"({cfg.model}, {cfg.label_set}, {cfg.window_ticks} ticks): {error}"
             ) from error
-        return cls(model, cfg, fall_classes(cfg.label_set, names))
+        return cls(model, cfg, fall_classes(cfg.label_set, names), classes)
 
     @property
     def window_ticks(self) -> int:
@@ -77,6 +85,48 @@ class Scorer:
     def top_is_fall_batch(self, windows: NDArray[np.float32]) -> NDArray[np.bool_]:
         """True where the most likely class is fall or fallen."""
         return np.isin(self.top_class_batch(windows), self._fall)
+
+    def posture_batch(self, windows: NDArray[np.float32]) -> NDArray[np.float32]:
+        """Posture probabilities (n, 5), in `POSTURES` order, from the same 16 outputs (D-72).
+
+        Raises ValueError for a model that was not trained on the omnifall16 labels.
+        """
+        return group_probabilities(self._probabilities(windows).numpy(), self._classes)
+
+    def top_posture_batch(self, windows: NDArray[np.float32]) -> NDArray[np.int64]:
+        """The index in `POSTURES` of the most likely posture of each window."""
+        return self.posture_batch(windows).argmax(axis=1).astype(np.int64)
+
+    def posture(self, window: NDArray[np.float32]) -> NDArray[np.float32]:
+        """The posture probabilities (5,) of one window of shape (3, window_ticks, 33)."""
+        expected = (3, self.window_ticks, POINTS)
+        if window.shape != expected:
+            raise ValueError(f"expected a window of shape {expected}, got {window.shape}")
+        return self.posture_batch(window[None])[0]
+
+    @property
+    def has_posture(self) -> bool:
+        """True for a model trained on the 16 OmniFall labels; the posture needs them."""
+        try:
+            posture_map(self._classes)
+        except ValueError:
+            return False
+        return True
+
+    def read(self, window: NDArray[np.float32]) -> tuple[float, NDArray[np.float32] | None]:
+        """Fall score and posture probabilities of one window from one model pass.
+
+        The posture is None for a model that was not trained on the omnifall16 labels.
+        """
+        expected = (3, self.window_ticks, POINTS)
+        if window.shape != expected:
+            raise ValueError(f"expected a window of shape {expected}, got {window.shape}")
+        probs = self._probabilities(window[None])
+        score = float(probs[:, self._fall].sum(dim=1).numpy().astype(np.float32)[0])
+        posture = (
+            group_probabilities(probs.numpy(), self._classes)[0] if self.has_posture else None
+        )
+        return score, posture
 
     def score(self, window: NDArray[np.float32]) -> float:
         """The fall score of one window of shape (3, window_ticks, 33)."""

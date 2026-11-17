@@ -18,6 +18,9 @@ addopts = "--cov=ally_emotion --cov-report=term-missing --cov-fail-under=80"
 
 [tool.coverage.run]
 branch = true
+# convert_check needs torchvision and the converter (env ally-emotion); CI has neither, so
+# its tests skip there and the module is not counted (its tests run in ally-emotion)
+omit = ["src/ally_emotion/convert_check.py"]
 
 [tool.ruff]
 line-length = 100

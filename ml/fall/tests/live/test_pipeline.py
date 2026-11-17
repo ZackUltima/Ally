@@ -82,3 +82,39 @@ def test_reset_starts_over(tmp_path: Path) -> None:
     xy = np.full((POINTS, 2), 0.5, np.float32)
     first = pipeline.process(0.0, xy, np.ones(POINTS, np.float32))
     assert first.score is None and first.new_ticks == 1  # time may start again from zero
+
+
+def test_posture_is_none_until_a_window_then_matches_the_offline_postures(tmp_path: Path) -> None:
+    scorer = make_scorer(tmp_path)
+    pipeline = LivePipeline(scorer, AlertRule(0.5, 3, 0))
+    frames = _frames(6.0, fps=24.0, seed=3)
+    results = _run(pipeline, frames)
+    assert results[0].posture is None and pipeline.last_posture is not None
+    live = [r.posture for r in results if r.posture is not None]
+    ticker, features = Ticker(), []
+    vis = np.full(POINTS, 0.9, dtype=np.float32)
+    for t, xy in frames:
+        features.extend(tick.features for tick in ticker.push(t, xy, vis))
+    stack = np.stack(features)
+    ends = np.arange(WINDOW_TICKS - 1, len(stack), dtype=np.int64)
+    windows = np.ascontiguousarray(window_features(stack, ends).transpose(0, 3, 1, 2))
+    expected = scorer.posture_batch(windows)
+    assert live[0].shape == (5,)
+    assert np.allclose(live[-1], expected[-1], atol=1e-6)
+    assert np.allclose(pipeline.last_posture, expected[-1], atol=1e-6)
+
+
+def test_reset_clears_the_posture(tmp_path: Path) -> None:
+    pipeline = LivePipeline(make_scorer(tmp_path), AlertRule(0.5, 3, 0))
+    _run(pipeline, _frames(5.0))
+    assert pipeline.last_posture is not None
+    pipeline.reset()
+    assert pipeline.last_posture is None
+
+
+def test_a_groups5_model_still_runs_and_has_no_posture(tmp_path: Path) -> None:
+    pipeline = LivePipeline(make_scorer(tmp_path, label_set="groups5"), AlertRule(0.5, 3, 0))
+    results = _run(pipeline, _frames(5.0))
+    assert any(r.score is not None for r in results)
+    assert all(r.posture is None for r in results)
+    assert pipeline.last_posture is None
